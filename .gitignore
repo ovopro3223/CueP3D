@@ -1,0 +1,28 @@
+node_modules/
+dist/
+.turbo/
+coverage/
+fixtures/.tmp/
+
+# generated/downloaded, not committed (see scripts/fetch-samples.mjs)
+samples/*.glb
+samples/*.gltf
+samples/*.bin
+!samples/LICENSES.md
+
+# build outputs of the CLI
+out/
+apps/demo/public/models/
+
+# bench results
+bench/results/*.json
+bench/results/*.mp4
+bench/results/*.webm
+
+# local
+.env
+.DS_Store
+Thumbs.db
+*.log
+.vscode/*
+!.vscode/extensions.json

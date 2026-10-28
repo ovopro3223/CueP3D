@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  KTX_SOFTWARE_VERSION: '4.4.2'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg (libaom-av1, libvpx-vp9 — no legacy codec use)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install toktx (KTX-Software)
+        run: |
+          curl -fsSL -o ktx.deb \
+            "https://github.com/KhronosGroup/KTX-Software/releases/download/v${KTX_SOFTWARE_VERSION}/KTX-Software-${KTX_SOFTWARE_VERSION}-Linux-x86_64.deb"
+          sudo apt-get install -y ./ktx.deb
+          toktx --version
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Format check
+        run: pnpm run format
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Unit + integration tests
+        run: pnpm run test
+
+      - name: Fetch sample models
+        run: pnpm run fetch-samples
+
+      - name: Build one sample
+        run: pnpm run understudy -- build samples/Avocado.glb -o /tmp/understudy-out/avocado
+
+      - name: Codec policy gate
+        run: pnpm run assert-free-codecs -- fixtures /tmp/understudy-out
+
+      - name: Upload benchmarks (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks
+          path: BENCHMARKS.md
+          if-no-files-found: ignore
