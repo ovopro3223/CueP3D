@@ -19,6 +19,12 @@ bench/results/*.json
 bench/results/*.mp4
 bench/results/*.webm
 
+# proxy-player Playwright harness: ffmpeg-regenerated reference frames and
+# the Playwright runner's own output, not committed (see P4-report.md)
+packages/proxy-player/e2e/.generated/
+packages/proxy-player/playwright-report/
+packages/proxy-player/test-results/
+
 # local
 .env
 .DS_Store
