@@ -62,6 +62,13 @@ jobs:
       - name: Fetch sample models
         run: pnpm run fetch-samples
 
+      - name: Build packages
+        # build-assets.mjs invokes the compiled CLI (packages/cli/dist/bin.js)
+        # directly; nothing before this point builds it on a clean checkout
+        # (local runs never hit this because a stale dist/ was always
+        # already there from a previous build).
+        run: pnpm run build
+
       - name: Build demo assets (bench's e2e smoke test needs real models)
         run: pnpm run demo:assets
 
