@@ -1,0 +1,37 @@
+{
+  "name": "@understudy3d/proxy-player",
+  "version": "0.1.0",
+  "description": "Decodes a proxy variant (AV1/VP9 MP4 via WebCodecs, <video>, or AVIF sequence) and makes any frame index available as an image, as early as the network allows.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run && pnpm run test:e2e",
+    "test:unit": "vitest run",
+    "test:e2e": "pnpm run build && playwright test -c e2e/playwright.config.ts",
+    "test:e2e:headed": "pnpm run build && playwright test -c e2e/playwright.config.ts --headed"
+  },
+  "dependencies": {
+    "@understudy3d/manifest": "workspace:*",
+    "mp4box": "^2.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^22.10.2",
+    "playwright": "^1.64.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
