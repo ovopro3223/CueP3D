@@ -31,11 +31,26 @@ test.beforeEach(async ({ page }) => {
 test('dispose() releases every GPU resource, the render loop, and the canvas element', async ({
   page,
 }) => {
+  // The baseline must see the stage's own allocations only. Since D-013
+  // the first proxy frame is uploaded synchronously the moment
+  // 'proxy-ready' fires, and on a fast runner that can land before the
+  // round trip that reads the baseline below (seen on CI: the baseline
+  // counted the overlay texture, so the correctly-freed count after
+  // dispose read one lower). Holding the proxy fetch back makes the
+  // ordering deterministic, the same way handoff-pixel-diff.spec.ts holds
+  // L0 back to keep the scrub ahead of warm().
+  let proxyHeld = true;
+  await page.route('**/fixtures/out-cube/proxy-256.*', async (route) => {
+    while (proxyHeld) await new Promise((resolve) => setTimeout(resolve, 25));
+    await route.continue();
+  });
+
   const id = await createViewerOnPage(page);
 
   await page.evaluate((id) => window.Harness.waitForState(id, 'proxy-loading', 10_000), id);
   const baseline = await page.evaluate(() => window.Harness.rendererMemory());
   expect(baseline).not.toBeNull();
+  proxyHeld = false;
 
   const reachedSettled = await page.evaluate(
     (id) => window.Harness.waitForState(id, 'settled', 15_000),
