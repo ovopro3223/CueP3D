@@ -13,6 +13,8 @@
  */
 export interface BenchMetricsSnapshot {
   ttfv?: number | undefined;
+  /** CueP3D only: first decoded video frame (packages/viewer `ViewerMetrics.ttProxyFrame`, D-014). */
+  ttProxyFrame?: number | undefined;
   tti?: number | undefined;
   ttLive?: number | undefined;
   ttSettled?: number | undefined;

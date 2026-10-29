@@ -46,7 +46,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as THREE from 'three';
 import { renderProxyFrames } from '@cuep3d/build-proxy';
-import { encodeProxy } from '@cuep3d/build-encode';
+import { encodeProxy, readProxyPoster } from '@cuep3d/build-encode';
 import { fitDistance } from '@cuep3d/stage';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -202,6 +202,9 @@ async function main() {
     quality: { av1Crf: 0, vp9Crf: 0, avifCrf: 0 },
   });
 
+  // D-014: frame 0 of the AVIF sequence, inlined into the manifest.
+  const poster = await readProxyPoster(variants, outDir);
+
   console.log('make-fixture: writing tiers (reusing the fixture sphere)...');
   const tierFiles = { L0: 'model.L0.glb', L1: 'model.L1.glb', L2: 'model.L2.glb' };
   const modelBytes = (await stat(modelGlb)).size;
@@ -228,6 +231,7 @@ async function main() {
       fps: FPS,
       background: BACKGROUND,
       variants,
+      poster,
     },
     tiers: [
       // maxTextureSize: 1, not 0 — the schema requires a positive integer

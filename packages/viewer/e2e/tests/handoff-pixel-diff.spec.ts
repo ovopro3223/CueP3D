@@ -48,6 +48,8 @@ declare global {
   }
 }
 
+let releaseL0: () => void = () => {};
+
 function meanAbsDiffPercent(a: PixelCapture, b: PixelCapture): number {
   expect(a.width).toBe(b.width);
   expect(a.height).toBe(b.height);
@@ -83,11 +85,20 @@ test.beforeEach(async ({ page }) => {
   // L0 is tiny (the shared cube fixture) and loads near-instantly, which
   // races with the deliberately slow (~300ms) scrub below: without this,
   // the handoff can complete before the test finishes issuing pointermoves
-  // and ever starts waiting for the 'handoff' state. Delaying L0's fetch
-  // gives the scrub time to land on SCRUB_TARGET_FRAME before warm()
-  // resolves, without changing anything about the handoff rule itself.
+  // and ever starts waiting for the 'handoff' state. L0 is therefore held
+  // on the network until the test releases it (`releaseL0()`), right before
+  // it starts waiting for 'handoff'. A fixed delay was used before; since
+  // D-014 the viewer builds its PMREM environment after the first frame,
+  // and on this software-rendered Chromium that work stalls the page for
+  // ~500 ms *between* L0's request and the test observing 'proxy-ready' —
+  // so no fixed delay measured from the request can be right. Holding L0
+  // until the test is ready makes the ordering explicit instead.
+  let l0Held = true;
+  releaseL0 = () => {
+    l0Held = false;
+  };
   await page.route('**/fixtures/out-cube/model.L0.glb', async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    while (l0Held) await new Promise((resolve) => setTimeout(resolve, 25));
     await route.continue();
   });
 });
@@ -117,6 +128,10 @@ test('the last proxy frame and the first live frame match within 2% (§3), with 
       azimuthStart: FIXTURE_AZIMUTH_START_RAD,
     },
   );
+
+  // The scrub has landed; let L0 through now. Its transfer plus warm()
+  // take far longer than the one evaluate() below needs to start waiting.
+  releaseL0();
 
   // Both captures happen INSIDE the page's 'statechange' listener (see
   // waitForStateAndCapture's doc comment in harness.ts) — a plain
@@ -246,6 +261,7 @@ test('the live render is pixel-identical to the exact ground-truth frame it shou
       azimuthStart: FIXTURE_AZIMUTH_START_RAD,
     },
   );
+  releaseL0();
   await page.evaluate((id) => window.Harness.waitForStateAndCapture(id, 'handoff', 10_000), id);
   const liveCapture = await page.evaluate(
     (id) => window.Harness.waitForStateAndCapture(id, 'live', 10_000),

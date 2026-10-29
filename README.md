@@ -15,19 +15,19 @@
 Loading a glTF on the web means staring at a spinner until every byte of geometry and texture has arrived, parsed, hit the GPU and compiled its shaders. Video solved this a decade ago with adaptive streaming. CueP3D brings the same idea to 3D: every model gets a tiny, hardware-decoded **AV1 orbit video** rendered by the viewer's own camera rig. It shows up almost instantly, you can already drag to rotate it, and while you do, the real model streams in as a quality ladder (L0 → L1 → L2). When the first tier is loaded, shader-compiled and rendered once off-screen, the viewer sets the live camera to the exact angle you scrubbed to and cross-fades. Nothing jumps.
 
 ```
-page load ─► first AV1 keyframe ─► visible + draggable ─► L0 glTF warm ─► cross-fade ─► live 3D ─► L1 ─► L2
-             ~150–600 ms          no stall, same camera, same lighting
+page load ─► manifest (frame 0 inline) ─► visible ─► first AV1 keyframe ─► draggable ─► L0 glTF warm ─► cross-fade ─► live 3D ─► L1 ─► L2
+             one round trip, ~3–6 KB      ~230 ms     ~410 ms             ~650 ms       no stall, same camera, same lighting   (3g-fast)
 ```
 
 **Real measured numbers** (median of 3 runs, real Chromium network throttling, real built models — full table in `BENCHMARKS.md`):
 
-| Preset (download / RTT)     | Plain `GLTFLoader` | CueP3D     | Speedup     |
-| --------------------------- | ------------------ | ---------- | ----------- |
-| wifi (30 Mbps / 20 ms)      | 2.5–3.2 s          | 464–479 ms | ~5–6×       |
-| 4g (9 Mbps / 60 ms)         | 7.6–9.9 s          | 498–547 ms | ~15–18×     |
-| 3g-fast (1.6 Mbps / 150 ms) | 41–54 **s**        | 593–605 ms | **~69–89×** |
+| Preset (download / RTT)     | Plain `GLTFLoader` | CueP3D first visual | CueP3D first video frame | Speedup (first visual) |
+| --------------------------- | ------------------ | ------------------- | ------------------------ | ---------------------- |
+| wifi (30 Mbps / 20 ms)      | 2.6–3.3 s          | 73–74 ms            | 131–134 ms               | ~35–46×                |
+| 4g (9 Mbps / 60 ms)         | 7.8–10 s           | 125–132 ms          | 202–234 ms               | ~62–78×                |
+| 3g-fast (1.6 Mbps / 150 ms) | 42–54 **s**        | 247–253 ms          | 419–453 ms               | **~169–216×**          |
 
-Two things worth being upfront about, in the spirit of this project's own rigor (see `docs/00-decisions.md` D-005d/D-005e for the full reasoning): the TTFV numbers above are the viewer's own internal timing, measured from when it starts working — not from page navigation, since the demo app's own unoptimized JS bundle adds real time on top (~2.75 s wall-clock on 3g-fast; code-splitting that away is a tracked roadmap item). And the project's own `≤ 500 ms` TTFV goal is **narrowly missed** (593–605 ms) on the slowest preset — reported as measured, not adjusted to pass.
+Two things worth being upfront about, in the spirit of this project's own rigor (see `docs/00-decisions.md` D-005e and D-014 for the full reasoning): the TTFV numbers above are the viewer's own internal timing, measured from when it starts working — not from page navigation; the demo page's own JS (three.js above all) still adds about 1.6 s on 3g-fast before the viewer can start, which `BENCHMARKS.md` reports as `Wall TTFV`. And "first visual" since D-014 is the manifest's inline poster — frame 0 of the orbit at proxy resolution, from the same rendered PNG as the video, replaced by the first decoded video frame one round trip later. That video frame is reported too (`First video frame` in `BENCHMARKS.md`): 419–453 ms on 3g-fast, itself under the 500 ms goal that D-005e recorded as missed at 593–605 ms.
 
 ## Why this exists
 
@@ -70,11 +70,11 @@ pnpm cuep3d build path/to/model.glb -o public/models/model
 <cuep3d-viewer src="/models/model/cuep3d.json" style="width:100%;aspect-ratio:1"></cuep3d-viewer>
 ```
 
-The build writes `cuep3d.json` (manifest), `model.L0.glb`/`L1`/`L2` (meshopt + KTX2), `proxy-1024.av1.mp4`, `proxy-512.av1.mp4`, `proxy-512.vp9.mp4`, and `frames-512/*.avif`. See `apps/demo` for a complete, working example (it's the app the GIF above was recorded from): `pnpm run fetch-samples && pnpm run demo:assets && pnpm --filter @cuep3d/demo run dev`.
+The build writes `cuep3d.json` (manifest, with frame 0 inlined as a ~3–6 KB AVIF poster so the first visual costs no second request), `model.L0.glb`/`L1`/`L2` (meshopt + KTX2), `proxy-1024.av1.mp4`, `proxy-512.av1.mp4`, `proxy-512.vp9.mp4`, and `frames-512/*.avif`. See `apps/demo` for a complete, working example (it's the app the GIF above was recorded from): `pnpm run fetch-samples && pnpm run demo:assets && pnpm --filter @cuep3d/demo run dev`.
 
 ## How it works
 
-See `docs/01-design.md` for the full design. In short: a manifest describes the bounds, the exact camera/lighting parameters, the proxy variants and the tier ladder. At run time a quality policy picks a proxy variant and a maximum tier from the device and network; the proxy player demuxes the MP4 with mp4box.js and decodes with WebCodecs (GOP-aware random access, LRU frame cache); the progressive loader loads tiers and _warms_ them (shader compile + off-screen render) before anything is shown; the stage draws proxy frames as a screen-aligned quad in the same WebGL scene so the cross-fade is a single-canvas operation.
+See `docs/01-design.md` for the full design. In short: a manifest describes the bounds, the exact camera/lighting parameters, the proxy variants, the tier ladder, and carries frame 0 inline so the first visual arrives with the manifest itself. At run time a quality policy picks a proxy variant and a maximum tier from the device and network; the proxy player demuxes the MP4 with mp4box.js and decodes with WebCodecs (GOP-aware random access, LRU frame cache); the progressive loader — imported only once the proxy is interactive — loads tiers and _warms_ them (shader compile + off-screen render) before anything is shown; the stage draws proxy frames as a screen-aligned quad in the same WebGL scene so the cross-fade is a single-canvas operation.
 
 ## Browser support
 
@@ -95,7 +95,7 @@ Progressive LOD streaming for three.js exists in [`@needle-tools/gltf-progressiv
 
 ## Limitations (v1)
 
-Object-centric content only (orbit camera). Single elevation ring. No transparent-background video. No animation playback inside the stand-in. `<cuep3d-viewer>`'s `policy`/`debug` options are JS-API-only (not element attributes). The demo app's own JS bundle isn't code-split, so its wall-clock TTFV is higher than the viewer's own (see "Real measured numbers" above and D-005e). Full list: `docs/roadmap.md`.
+Object-centric content only (orbit camera). Single elevation ring. No transparent-background video. No animation playback inside the stand-in. `<cuep3d-viewer>`'s `policy`/`debug` options are JS-API-only (not element attributes). Wall-clock first visual on a slow link is still bounded by three.js's own ~134 KB gzip arriving before the viewer can start (see `Wall TTFV` in `BENCHMARKS.md`). Full list: `docs/roadmap.md`.
 
 ## Development
 

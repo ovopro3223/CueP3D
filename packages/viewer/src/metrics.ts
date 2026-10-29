@@ -28,10 +28,17 @@ export function createMetricsTracker(t0: number) {
     snapshot(): ViewerMetrics {
       return { ...metrics };
     },
+    /** First call wins: the poster and the first video frame both call this; whichever is first *is* the first visual. */
     markTtfv(bytesBeforeFirstVisual: number): void {
+      if (metrics.ttfv !== undefined) return;
       metrics.ttfv = now();
       metrics.bytesBeforeFirstVisual = bytesBeforeFirstVisual;
       mark('cuep3d:ttfv');
+    },
+    markTtProxyFrame(): void {
+      if (metrics.ttProxyFrame !== undefined) return;
+      metrics.ttProxyFrame = now();
+      mark('cuep3d:ttProxyFrame');
     },
     markTti(): void {
       if (metrics.tti !== undefined) return;

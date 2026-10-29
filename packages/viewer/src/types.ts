@@ -4,7 +4,19 @@ import type { ViewerState } from './state-machine.js';
 export type { ViewerState };
 
 export interface ViewerMetrics {
+  /**
+   * Time to first visual: the inline poster (manifest.proxy.poster, D-014)
+   * when the manifest carries one, otherwise the first decoded proxy frame.
+   */
   ttfv?: number;
+  /**
+   * Time to the first *decoded video* frame of the proxy — the moment the
+   * stand-in becomes a scrubbable video rather than a still. Equals `ttfv`
+   * for a manifest without a poster. Additive to the frozen §5.6 shape, so
+   * the pre-D-014 number stays visible next to the new one (D-005e's
+   * "report both, hide neither").
+   */
+  ttProxyFrame?: number;
   tti?: number;
   ttLive?: number;
   ttSettled?: number;

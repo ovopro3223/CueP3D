@@ -7,6 +7,8 @@
  */
 export interface MetricsSnapshot {
   ttfv?: number | undefined;
+  /** CueP3D only: first decoded video frame; `ttfv` is the inline poster when the manifest has one (D-014). */
+  ttProxyFrame?: number | undefined;
   tti?: number | undefined;
   ttLive?: number | undefined;
   ttSettled?: number | undefined;

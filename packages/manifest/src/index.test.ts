@@ -73,6 +73,28 @@ describe('validateManifest', () => {
     }
   });
 
+  it('accepts an optional inline poster (D-014) and rejects one with a non-AVIF codec', () => {
+    const poster = {
+      codec: 'avif' as const,
+      url: 'data:image/avif;base64,AAAAHGZ0eXBhdmlm',
+      width: 512,
+      height: 512,
+      bytes: 2819,
+    };
+    const withPoster = validateManifest({
+      ...validFixture(),
+      proxy: { ...validFixture().proxy, poster },
+    });
+    expect(withPoster.proxy.poster).toEqual(poster);
+    expect(validateManifest(validFixture()).proxy.poster).toBeUndefined();
+    expect(() =>
+      validateManifest({
+        ...validFixture(),
+        proxy: { ...validFixture().proxy, poster: { ...poster, codec: 'jpeg' } },
+      }),
+    ).toThrow(ManifestValidationError);
+  });
+
   it('fails with every missing required field reported, not just the first', () => {
     const broken = { version: 1 };
     try {
@@ -95,6 +117,11 @@ describe('resolveUrl', () => {
     expect(resolveUrl('https://example.com/models/foo/cuep3d.json', 'model.L0.glb')).toBe(
       'https://example.com/models/foo/model.L0.glb',
     );
+  });
+
+  it('leaves an inline data: URL (the poster) untouched', () => {
+    const dataUrl = 'data:image/avif;base64,AAAAHGZ0eXBhdmlm';
+    expect(resolveUrl('https://example.com/models/foo/cuep3d.json', dataUrl)).toBe(dataUrl);
   });
 
   it('resolves a sequence pattern placeholder literally', () => {

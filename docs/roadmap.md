@@ -4,8 +4,10 @@ Items deliberately out of scope for v1, collected from the design doc, decisions
 
 ## Performance
 
-- **Code-split `apps/demo`** so the initial chunk needed before first paint is materially smaller than today's ~300 KB gzip (D-005e) — closes most of the gap between viewer-internal TTFV (593–605 ms, 3g-fast) and wall-clock TTFV (~2750 ms). Candidates: lazy-load `@cuep3d/viewer` only when the CueP3D pane is about to mount (it already is a dynamic `import()`; the main chunk itself still pulls in three.js/the Plain pane eagerly), route-level splitting, or a leaner entry point for library consumers who don't need the demo's comparison UI at all.
-- Re-run the full `bench/` sweep after any such change and update `BENCHMARKS.md`.
+- ~~**Code-split `apps/demo`**~~ — done in D-014: both panes are dynamic imports, three.js is one shared chunk, the viewer imports `@cuep3d/progressive-loader` lazily, and the CueP3D path's chunks are `modulepreload`ed from the HTML. Wall-clock TTFV on 3g-fast went from ~2750 ms to 1803–1830 ms. What remains on that path is three.js itself (~134 KB gzip) plus the viewer and mp4box (~57 KB gzip): a smaller renderer core would be the next step, not more splitting.
+- **Let the host page remove the last round trip.** Since D-014 the first visual costs exactly one request (the manifest, with frame 0 inline). A host that already knows the model could inline `cuep3d.json` into its HTML or `<link rel="preload" as="fetch">` it; `createViewer` would need to accept a manifest object (or read the preload cache) for that. Deliberately not counted toward §3's number — it changes what is measured, not the mechanism (D-014).
+- **The benchmark renders WebGL in software.** Playwright's headless Chromium reports `ANGLE … SwiftShader Device (Subzero)`; the PMREM environment costs ~550 ms of GPU-process time there (tens of ms on a real GPU), and it is a main-thread stall because that compositor path reads the canvas back with `ReadPixels`. D-014 moved it off every §3 mark, but `Time to live` still carries it. A run on a GPU-backed Chromium would be a useful second column.
+- Re-run the full `bench/` sweep after any change on these paths and update `BENCHMARKS.md`.
 
 ## 3D content and delivery
 

@@ -4,16 +4,14 @@ import {
   validateManifest,
   resolveUrl,
   type Manifest,
+  type ProxyPoster,
   type ProxyVariant,
   type Tier,
 } from '@cuep3d/manifest';
 import { createStage, degToRad, type Stage } from '@cuep3d/stage';
 import { selectProxyVariant, createProxyPlayer, type ProxyPlayer } from '@cuep3d/proxy-player';
-import {
-  createProgressiveLoader,
-  disposeObject,
-  type ProgressiveLoader,
-} from '@cuep3d/progressive-loader';
+import type * as ProgressiveLoaderModule from '@cuep3d/progressive-loader';
+import type { ProgressiveLoader } from '@cuep3d/progressive-loader';
 import {
   chooseQuality,
   classifyDeviceTier,
@@ -36,6 +34,15 @@ import type {
   ViewerMetrics,
   ViewerOptions,
 } from './types.js';
+
+/**
+ * @cuep3d/progressive-loader (GLTFLoader, KTX2Loader with its zstd WASM,
+ * meshoptimizer's WASM — roughly half of this package's bundled bytes) is
+ * only needed once a tier is about to load, which on a slow link is seconds
+ * after the first visual. It is imported lazily, after the first proxy
+ * frame is on screen, so its bytes neither delay `createViewer()` from
+ * running nor compete with the proxy's first keyframe (D-014).
+ */
 
 const HANDOFF_CROSSFADE_MS = 150;
 /** §6: "wait for release or slow-down, cap the wait at 1 s". */
@@ -69,6 +76,46 @@ async function loadTierWithRetry(
     return await loader.loadTier(tier, baseUrl, onProgress);
   } catch {
     return await loader.loadTier(tier, baseUrl, onProgress);
+  }
+}
+
+const DATA_URL_PREFIX = /^data:([^;,]+)?(;base64)?,/i;
+
+/**
+ * Bytes of the poster: decoded here for a `data:` URL rather than passed to
+ * `fetch()`. Measured: Chromium routes even a `data:` fetch through its
+ * network stack, where DevTools/CDP throttling queues it behind the proxy
+ * video's first block — 600 ms for 2.8 KB that were already in memory. A
+ * non-data URL (a poster served as its own file) is fetched normally.
+ */
+async function posterBlob(poster: ProxyPoster, manifestUrl: string): Promise<Blob | null> {
+  const match = DATA_URL_PREFIX.exec(poster.url);
+  if (match) {
+    const payload = poster.url.slice(match[0].length);
+    const binary = match[2] ? atob(payload) : decodeURIComponent(payload);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: match[1] ?? 'image/avif' });
+  }
+  const response = await fetch(resolveUrl(manifestUrl, poster.url));
+  return response.ok ? response.blob() : null;
+}
+
+/**
+ * D-014: decodes the manifest's inline poster (frame 0 as an AVIF still)
+ * off the main thread. Never rejects — a missing or undecodable poster just
+ * means the first visual is the first decoded video frame, as before.
+ */
+async function decodePoster(
+  poster: ProxyPoster | undefined,
+  manifestUrl: string,
+): Promise<ImageBitmap | null> {
+  if (!poster || typeof createImageBitmap === 'undefined') return null;
+  try {
+    const blob = await posterBlob(poster, manifestUrl);
+    return blob ? await createImageBitmap(blob) : null;
+  } catch {
+    return null;
   }
 }
 
@@ -109,6 +156,12 @@ class ViewerImpl extends EventTarget implements Viewer {
   private stage: Stage | null = null;
   private proxyPlayer: ProxyPlayer | null = null;
   private progressiveLoader: ProgressiveLoader | null = null;
+  private loaderModule: typeof ProgressiveLoaderModule | null = null;
+  private loaderModulePromise: Promise<typeof ProgressiveLoaderModule> | null = null;
+  private posterBitmap: ImageBitmap | null = null;
+  private posterShown = false;
+  private firstVideoFrameShown = false;
+  private applySize: (() => void) | null = null;
   private scrubController: ScrubController | null = null;
   private controls: OrbitControls | null = null;
   private currentRoot: THREE.Object3D | null = null;
@@ -164,25 +217,40 @@ class ViewerImpl extends EventTarget implements Viewer {
       typeof document !== 'undefined' ? document.baseURI : undefined,
     ).toString();
 
+    // Ordered by what the visitor is waiting for (D-014). The manifest
+    // request goes out first; the canvas and WebGL context are built while
+    // it is in flight, since they need nothing from it. Once the manifest
+    // is in: start the proxy fetch — the one other round trip nothing can
+    // remove — *before* building the stage, so the PMREM environment's tens
+    // of milliseconds of main-thread work overlap the first proxy bytes'
+    // travel instead of delaying the request that fetches them.
+    const manifestRequest = fetch(manifestUrl);
+    const renderer = this.setupRenderer();
+
     let manifest: Manifest;
+    let manifestBytes = 0;
     try {
-      const response = await fetch(manifestUrl);
+      const response = await manifestRequest;
       if (!response.ok) {
         throw new Error(
           `Failed to fetch manifest: ${String(response.status)} ${response.statusText}`,
         );
       }
-      manifest = validateManifest(await response.json());
+      const text = await response.text();
+      manifestBytes = new TextEncoder().encode(text).byteLength;
+      manifest = validateManifest(JSON.parse(text) as unknown);
     } catch (error) {
       this.fail(toError(error));
       return;
     }
     if (this.disposed) return;
 
-    const { renderer, stage } = this.setupScene(manifest);
-    this.startRenderLoop();
+    this.container.style.backgroundColor = this.options.background ?? manifest.proxy.background;
+    renderer.setClearColor(new THREE.Color(manifest.proxy.background), 1);
 
-    this.setState({ type: 'manifest-loaded' });
+    // The inline poster (frame 0 as an AVIF still) decodes off-thread in
+    // parallel with everything below; it needs no further request.
+    const posterPromise = decodePoster(manifest.proxy.poster, manifestUrl);
 
     const dpr = Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, MAX_DPR);
     const canvasCssWidth = Math.max(1, this.container.clientWidth);
@@ -196,8 +264,11 @@ class ViewerImpl extends EventTarget implements Viewer {
     const deviceTier = classifyDeviceTier(policyOptions);
     const width = desiredProxyWidth(canvasCssWidth, dpr, deviceTier);
     const candidates = orderVariantsByPreferredWidth(manifest.proxy.variants, width);
-    const selectedVariant = this.disposed ? null : await selectProxyVariant(candidates);
-    if (this.disposed) return;
+    const selectedVariant = await selectProxyVariant(candidates);
+    if (this.disposed) {
+      void posterPromise.then((bitmap) => bitmap?.close());
+      return;
+    }
 
     const decision = chooseQuality({
       options: policyOptions,
@@ -205,14 +276,30 @@ class ViewerImpl extends EventTarget implements Viewer {
       availableTierIds: manifest.tiers.map((t) => t.id),
     });
 
+    // The proxy fetch starts here — before the stage exists.
+    let proxyPlayer: ProxyPlayer | null = null;
+    if (decision.proxyVariant) {
+      try {
+        proxyPlayer = createProxyPlayer(decision.proxyVariant, manifestUrl);
+      } catch {
+        proxyPlayer = null;
+      }
+    }
+
+    const stage = this.setupStage(renderer, manifest);
+    this.startRenderLoop();
+    this.setState({ type: 'manifest-loaded' });
+
+    void posterPromise.then((bitmap) => this.showPoster(bitmap, stage, manifestBytes));
+
     const azimuthStartRad = degToRad(manifest.proxy.azimuthStartDeg);
     const elevationRad = degToRad(manifest.proxy.rings[0]?.elevationDeg ?? 0);
 
-    const proxyPlayer = await this.startProxyPhase(
+    const livePlayer = await this.startProxyPhase(
       manifest,
-      manifestUrl,
       decision,
       stage,
+      proxyPlayer,
       azimuthStartRad,
       elevationRad,
     );
@@ -226,15 +313,53 @@ class ViewerImpl extends EventTarget implements Viewer {
       renderer,
       azimuthStartRad,
       elevationRad,
-      proxyPlayer,
+      proxyPlayer: livePlayer,
     });
   }
 
-  private setupScene(manifest: Manifest): { renderer: THREE.WebGLRenderer; stage: Stage } {
+  /** Shows the decoded inline poster, unless a video frame (or the live model) got there first. */
+  private showPoster(bitmap: ImageBitmap | null, stage: Stage, manifestBytes: number): void {
+    if (!bitmap) return;
+    const stillWaitingForFirstVisual =
+      !this.disposed &&
+      !this.firstVideoFrameShown &&
+      (this._state === 'proxy-loading' || this._state === 'warming');
+    if (!stillWaitingForFirstVisual) {
+      bitmap.close();
+      return;
+    }
+    stage.setOverlayFrame(bitmap);
+    stage.setOverlayOpacity(1);
+    this.posterBitmap = bitmap;
+    this.posterShown = true;
+    this.metricsTracker.markTtfv(manifestBytes);
+    this.dispatchMetrics();
+  }
+
+  private closePoster(): void {
+    this.posterBitmap?.close();
+    this.posterBitmap = null;
+  }
+
+  /** Started at the TTI mark, or at once when the proxy is unusable; awaited by runTierPipeline either way. */
+  private startLoaderImport(): Promise<typeof ProgressiveLoaderModule> {
+    if (!this.loaderModulePromise) {
+      this.loaderModulePromise = import('@cuep3d/progressive-loader').then((module) => {
+        this.loaderModule = module;
+        return module;
+      });
+      // runTierPipeline awaits (and handles) this; until it does, a rejection
+      // must not surface as an unhandled one.
+      this.loaderModulePromise.catch(() => undefined);
+    }
+    return this.loaderModulePromise;
+  }
+
+  /** Canvas + WebGL context: needs nothing from the manifest, so it is built while that request is in flight. */
+  private setupRenderer(): THREE.WebGLRenderer {
     if (getComputedStyle(this.container).position === 'static') {
       this.container.style.position = 'relative';
     }
-    this.container.style.backgroundColor = this.options.background ?? manifest.proxy.background;
 
     const canvas = document.createElement('canvas');
     canvas.style.width = '100%';
@@ -257,29 +382,20 @@ class ViewerImpl extends EventTarget implements Viewer {
       preserveDrawingBuffer: true,
     });
     this.renderer = renderer;
-    renderer.setClearColor(new THREE.Color(manifest.proxy.background), 1);
     const dpr = Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, MAX_DPR);
     renderer.setPixelRatio(dpr);
-
-    const stage = createStage(renderer, manifest.stage);
-    this.stage = stage;
-
-    // Debug-only introspection hook (parallel to `window.__cuep3dMetrics`,
-    // §5.6 point 9) — not part of the frozen Viewer surface, used by this
-    // package's own Playwright tests (e.g. `renderer.info.memory` for the
-    // dispose/leak test) and available to the bench under the same flag.
-    if (this.options.debug && typeof window !== 'undefined') {
-      (window as unknown as Record<string, unknown>).__cuep3dDebug = { renderer, stage };
-    }
 
     const applySize = (): void => {
       const width = Math.max(1, this.container.clientWidth);
       const height = Math.max(1, this.container.clientHeight);
       renderer.setSize(width, height, false);
-      stage.camera.aspect = width / height;
-      stage.camera.updateProjectionMatrix();
+      if (this.stage) {
+        this.stage.camera.aspect = width / height;
+        this.stage.camera.updateProjectionMatrix();
+      }
     };
     applySize();
+    this.applySize = applySize;
 
     if (typeof ResizeObserver !== 'undefined') {
       const resizeObserver = new ResizeObserver(applySize);
@@ -290,7 +406,7 @@ class ViewerImpl extends EventTarget implements Viewer {
     const onContextLost = (event: Event): void => event.preventDefault();
     const onContextRestored = (): void => {
       applySize();
-      renderer.render(stage.scene, stage.camera);
+      this.stage?.render();
     };
     canvas.addEventListener('webglcontextlost', onContextLost);
     canvas.addEventListener('webglcontextrestored', onContextRestored);
@@ -299,7 +415,28 @@ class ViewerImpl extends EventTarget implements Viewer {
       canvas.removeEventListener('webglcontextrestored', onContextRestored);
     });
 
-    return { renderer, stage };
+    return renderer;
+  }
+
+  /** Scene, camera and PMREM environment from the manifest's stage params (D-007). */
+  private setupStage(renderer: THREE.WebGLRenderer, manifest: Manifest): Stage {
+    // The environment map is built later (`stage.ensureEnvironment()`), once
+    // something is on screen: the overlay quad is unlit, and the PMREM work
+    // is the largest GPU job before the first frame — on the bench's
+    // headless Chromium the first canvas present waited ~550 ms for it.
+    const stage = createStage(renderer, manifest.stage, { deferEnvironment: true });
+    this.stage = stage;
+    this.applySize?.();
+
+    // Debug-only introspection hook (parallel to `window.__cuep3dMetrics`,
+    // §5.6 point 9) — not part of the frozen Viewer surface, used by this
+    // package's own Playwright tests (e.g. `renderer.info.memory` for the
+    // dispose/leak test) and available to the bench under the same flag.
+    if (this.options.debug && typeof window !== 'undefined') {
+      (window as unknown as Record<string, unknown>).__cuep3dDebug = { renderer, stage };
+    }
+
+    return stage;
   }
 
   private startRenderLoop(): void {
@@ -333,35 +470,44 @@ class ViewerImpl extends EventTarget implements Viewer {
    * frame, or a decision to skip the proxy entirely. */
   private async startProxyPhase(
     manifest: Manifest,
-    manifestUrl: string,
     decision: QualityPolicyDecision,
     stage: Stage,
+    proxyPlayer: ProxyPlayer | null,
     azimuthStartRad: number,
     elevationRad: number,
   ): Promise<ProxyPlayer | null> {
-    if (!decision.proxyVariant) {
+    if (!proxyPlayer || !decision.proxyVariant) {
       this._degraded = true;
       this.setState({ type: 'proxy-degraded' });
+      stage.ensureEnvironment();
+      void this.startLoaderImport();
       return null;
     }
 
-    let proxyPlayer: ProxyPlayer;
     try {
-      proxyPlayer = createProxyPlayer(decision.proxyVariant, manifestUrl);
       const firstFrame = await proxyPlayer.firstFrame;
       if (this.disposed) {
         proxyPlayer.dispose();
         return null;
       }
+      this.firstVideoFrameShown = true;
       stage.setOverlayFrame(firstFrame);
       stage.setOverlayOpacity(1);
+      // The poster (if one was up) is frame 0 of the same orbit; the decoded
+      // keyframe simply takes its place. Its upload is synchronous (D-013),
+      // so the bitmap can go now.
+      this.closePoster();
       this.metricsTracker.markTtfv(proxyPlayer.bytesLoaded);
+      this.metricsTracker.markTtProxyFrame();
       this.dispatchMetrics();
     } catch {
       // §8: "Proxy fails after start → mark degraded, continue to 3D;
-      // never block on the proxy."
+      // never block on the proxy." A poster already on screen stays up.
+      proxyPlayer.dispose();
       this._degraded = true;
       this.setState({ type: 'proxy-degraded' });
+      stage.ensureEnvironment();
+      void this.startLoaderImport();
       return null;
     }
 
@@ -420,13 +566,29 @@ class ViewerImpl extends EventTarget implements Viewer {
     variant: ProxyVariant,
     totalFrames: number,
   ): void {
-    const requiredSpan = Math.min(totalFrames, (variant.gop ?? totalFrames) * 3);
+    // Three GOPs decodable (§6 / §5.6): `available` is an inclusive index
+    // range, so three GOPs of 8 are frames 0..23 — a span of 23, not 24.
+    // (Before D-014 this compared `to - from` against the frame count and
+    // so waited for a fourth GOP.)
+    const requiredFrames = Math.min(totalFrames, (variant.gop ?? totalFrames) * 3);
     const check = (): void => {
       const { from, to } = proxyPlayer.available;
-      if (to - from >= requiredSpan) {
+      if (to - from + 1 >= requiredFrames) {
         this.metricsTracker.markTti();
         this.dispatchMetrics();
         unsubscribe();
+        // The proxy is interactive; only now spend GPU time and bandwidth
+        // on what the 3D pipeline needs next (D-014): the PMREM environment
+        // (on the bench's software-rendered Chromium its GPU work stalls the
+        // main thread ~550 ms; built any earlier, that stall sat on the
+        // first frame or on the GOPs this mark waits for) and the loader
+        // chunk (GLTFLoader, KTX2, meshopt — ~90 KB that, started at the
+        // first frame, halved the proxy's throughput and pushed TTI from
+        // ~650 to ~920 ms on 3g-fast). runTierPipeline awaits/ensures both
+        // regardless, so a proxy that never reaches this point still gets
+        // its tiers.
+        this.stage?.ensureEnvironment();
+        void this.startLoaderImport();
       }
     };
     const unsubscribe = proxyPlayer.onAvailableChange(check);
@@ -473,10 +635,6 @@ class ViewerImpl extends EventTarget implements Viewer {
       proxyPlayer,
     } = ctx;
 
-    const ktx2TranscoderPath = resolveUrl(manifestUrl, 'basis/');
-    const loader = createProgressiveLoader(renderer, { ktx2TranscoderPath });
-    this.progressiveLoader = loader;
-
     const tiers = tiersToLoad(manifest.tiers, decision.maxTier);
     if (tiers.length === 0) {
       this.fail(new Error('QualityPolicy resolved maxTier to a tier the manifest does not have.'));
@@ -488,19 +646,41 @@ class ViewerImpl extends EventTarget implements Viewer {
     }
     if (this.disposed) return;
 
+    // In serial mode the TTI watcher has normally started this import
+    // already (and the proxy is complete by now); in parallel mode this is
+    // where it starts, alongside the proxy.
+    let loaderModule: typeof ProgressiveLoaderModule;
+    try {
+      loaderModule = await this.startLoaderImport();
+    } catch (error) {
+      // Same contract as a failed tier (§8): with a proxy up, stay on it;
+      // with nothing on screen, surface the error.
+      if (this._degraded && !this.posterShown) this.fail(toError(error));
+      return;
+    }
+    if (this.disposed) return;
+
+    const ktx2TranscoderPath = resolveUrl(manifestUrl, 'basis/');
+    const loader = loaderModule.createProgressiveLoader(renderer, { ktx2TranscoderPath });
+    this.progressiveLoader = loader;
+
     let bytesTotal = proxyPlayer?.bytesLoaded ?? 0;
     const tier0 = tiers[0]!;
     if (this._state === 'proxy-ready') this.setState({ type: 'tier-warm' });
 
     let currentRoot: THREE.Object3D;
     try {
-      currentRoot = await loadTierWithRetry(loader, tier0, manifestUrl, (bytes) => {
+      const tier0Load = loadTierWithRetry(loader, tier0, manifestUrl, (bytes) => {
         this.metricsTracker.setBytesTotal((proxyPlayer?.bytesLoaded ?? 0) + bytes);
         this.dispatchMetrics();
       });
+      // warm() compiles against stage.scene, so the environment must exist
+      // by now (normally built at the TTI mark; a no-op then).
+      stage.ensureEnvironment();
+      currentRoot = await tier0Load;
       await loader.warm(currentRoot, stage);
     } catch (error) {
-      if (this._degraded) {
+      if (this._degraded && !this.posterShown) {
         // §8: "if L0 fails and no proxy, surface error" — nothing was ever
         // shown, so there is nothing to fall back to.
         this.fail(toError(error));
@@ -516,10 +696,21 @@ class ViewerImpl extends EventTarget implements Viewer {
       // statechange fires (matches the non-degraded branch below) — a
       // listener reacting to 'live' should see a scene that is actually
       // ready to render, not one still a tick away from it.
+      stage.setView(azimuthStartRad, elevationRad);
       stage.setModel(currentRoot);
+      if (this.posterBitmap) {
+        // No video ever decoded, but the poster (frame 0, at the start
+        // azimuth the camera is still at) is on screen: cross-fade it out
+        // over the live model like a real handoff rather than cutting.
+        await this.runCrossfade();
+        if (this.disposed) return;
+        stage.setOverlayFrame(null);
+        this.closePoster();
+      }
       this.setupControls(stage, manifest, azimuthStartRad, elevationRad);
       this.setState({ type: 'handoff-skip' });
-      this.metricsTracker.markTtLive(bytesTotal);
+      // With a poster, the first visual (and its byte count) was the manifest.
+      this.metricsTracker.markTtLive(this.posterShown ? undefined : bytesTotal);
     } else {
       // Handoff rule (§6): (a) shaders compiled and (b) one off-screen
       // render done are both already guaranteed by warm() having resolved;
@@ -562,7 +753,7 @@ class ViewerImpl extends EventTarget implements Viewer {
 
       this.setState({ type: 'upgrade-start' });
       stage.setModel(nextRoot);
-      disposeObject(currentRoot);
+      loaderModule.disposeObject(currentRoot);
       currentRoot = nextRoot;
       this.currentRoot = currentRoot;
       this.setState({ type: 'upgrade-done' });
@@ -585,7 +776,8 @@ class ViewerImpl extends EventTarget implements Viewer {
     this.scrubController?.detach();
     this.proxyPlayer?.dispose();
     this.progressiveLoader?.dispose();
-    if (this.currentRoot) disposeObject(this.currentRoot);
+    this.closePoster();
+    if (this.currentRoot) this.loaderModule?.disposeObject(this.currentRoot);
     this.stage?.dispose();
     this.renderer?.dispose();
     this.canvas?.remove();

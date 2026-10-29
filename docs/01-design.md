@@ -10,7 +10,7 @@ Loading a 3D model on the web today means the visitor stares at a blank box or s
 
 Give every model a **proxy stand-in**: a tiny orbit video (AV1, hardware-decoded) rendered from the exact same camera rig and lighting the live viewer will use.
 
-1. Page loads → the proxy's first keyframe arrives (~20–40 KB) → the model is visible.
+1. Page loads → the manifest arrives, carrying frame 0 of the orbit inline as a ~3–6 KB AVIF still (D-014) → the model is visible. The proxy video's first keyframe (~5 KB at 512 px) follows one round trip later and takes the still's place.
 2. The visitor drags → the video is **scrubbed** frame-by-frame; it feels like rotating the object.
 3. Meanwhile the real glTF streams in as a quality ladder: L0 (tiny) → L1 → L2 (full).
 4. When L0 is loaded _and_ its shaders are compiled _and_ one frame has been rendered off-screen, the viewer sets the live camera to the exact azimuth the visitor scrubbed to and cross-fades over ~150 ms. Nothing jumps.
@@ -22,8 +22,8 @@ On a device that cannot decode AV1, a royalty-free fallback is used (VP9, then a
 
 Goals (measured by `bench/`, see §10):
 
-- Time-to-first-visual (TTFV) ≤ 500 ms on the `3g-fast` preset, for a model whose plain load takes > 10 s. Measured from `createViewer()`'s own construction (`window.__cuep3dMetrics`), not from navigation start (see D-005e) — this is a goal for the proxy-player/viewer mechanism itself, deliberately scoped apart from however large the page embedding it happens to be. **Current real measurement (`BENCHMARKS.md`, 2026-10-29): 593–605 ms, 19–21 % over** — reported as measured, not adjusted to pass (same discipline as D-005d). The gap tracks almost exactly with `apps/demo`'s own un-code-split JS bundle (~300 KB gzip) taking that long to fetch over 1.6 Mbps before `createViewer()` can even run; see D-005e and the roadmap.
-- Time-to-interactive (scrub or orbit responds) ≤ 3 s on `3g-fast`. **Met**: 757–1270 ms measured.
+- Time-to-first-visual (TTFV) ≤ 500 ms on the `3g-fast` preset, for a model whose plain load takes > 10 s. Measured from `createViewer()`'s own construction (`window.__cuep3dMetrics`), not from navigation start (see D-005e) — this is a goal for the proxy-player/viewer mechanism itself, deliberately scoped apart from however large the page embedding it happens to be. **Met since D-014: 247–253 ms** (`BENCHMARKS.md`, 2026-10-29), where the first visual is the manifest's inline poster — frame 0 of the orbit at proxy resolution, from the same rendered PNG as the video. The first _decoded video_ frame is reported beside it as `ttProxyFrame`: **419–453 ms**, also under 500 ms; before D-014 that was the TTFV number, measured at 593–605 ms (D-005e) and 812–934 ms on the same day's re-run (the benchmark's software-rendered Chromium stalls ~550 ms on the PMREM environment, which D-014 moved off the first-frame path).
+- Time-to-interactive (scrub or orbit responds) ≤ 3 s on `3g-fast`. **Met**: 654–1097 ms measured.
 - No visible jump at handoff — measured as two separate things (D-005d), both now met on the original bar:
   - **Sync correctness** (camera, timing, frame identity — the thing this project actually controls): the live render at the moment of handoff must match a ground-truth render of the same frame/azimuth within < 0.5 % mean absolute pixel difference (automated test). **Measured: 0.000 %.**
   - **Visual continuity** (last AV1 proxy frame vs. first live frame, same azimuth): < 2 % mean absolute pixel difference (automated test). **Measured: 0.151 %** (the codec round-trip of the same frame alone is 0.283 %). D-005d had budgeted this at < 8 % on the belief that a stable 5.2 % was AV1 noise; D-013 found it was the overlay showing a stale frame, and the original 2 % is back.
@@ -101,8 +101,16 @@ interface Manifest {
     fps: number; // nominal timeline fps for <video> seeking (24)
     background: string; // "#ffffff", baked into frames; viewer clear colour must match
     variants: ProxyVariant[]; // ordered by preference
+    poster?: ProxyPoster; // frame 0 inline, so the first visual needs no second request (D-014)
   };
   tiers: Tier[]; // ascending quality: L0, L1, L2
+}
+interface ProxyPoster {
+  codec: 'avif';
+  url: string; // normally a data:image/avif;base64 URL; a manifest-relative file URL also works
+  width: number; // the smallest variant's size (512 for the samples)
+  height: number;
+  bytes: number; // encoded AVIF size, before base64
 }
 interface StageParams {
   fovDeg: number; // 35
@@ -138,9 +146,10 @@ All URLs are relative to the manifest's own URL.
 ### 5.3 `@cuep3d/stage` API
 
 ```ts
-createStage(renderer: THREE.WebGLRenderer, params: StageParams): Stage
+createStage(renderer: THREE.WebGLRenderer, params: StageParams, options?: { deferEnvironment?: boolean }): Stage
 interface Stage {
   scene: THREE.Scene; camera: THREE.PerspectiveCamera;
+  ensureEnvironment(): void;                                 // builds the deferred PMREM environment; idempotent; setModel() calls it (D-014)
   setView(azimuthRad: number, elevationRad: number): void;   // positions camera per §5.1
   getView(): { azimuthRad: number; elevationRad: number };
   setModel(root: THREE.Object3D | null): void;               // replaces the current model, no flicker (swap after next frame)
@@ -191,7 +200,8 @@ createViewer(container: HTMLElement, options: { src: string; policy?: Partial<Qu
 interface Viewer extends EventTarget {
   readonly state: 'idle' | 'proxy-loading' | 'proxy-ready' | 'warming' | 'handoff' | 'live' | 'upgrading' | 'settled' | 'error';
   readonly degraded: boolean;               // true when no proxy variant could be used
-  readonly metrics: { ttfv?: number; tti?: number; ttLive?: number; ttSettled?: number; bytesBeforeFirstVisual: number; bytesTotal: number };
+  readonly metrics: { ttfv?: number; ttProxyFrame?: number; tti?: number; ttLive?: number; ttSettled?: number; bytesBeforeFirstVisual: number; bytesTotal: number };
+  // ttfv: the inline poster when the manifest has one, else the first decoded video frame; ttProxyFrame: the first decoded video frame (D-014)
   dispose(): void;
 }
 // events: 'statechange' (detail.state), 'metrics' (detail = metrics), 'error' (detail.error)
@@ -217,6 +227,8 @@ Download scheduling (QualityPolicy):
 - Proxy variant by width: 512 when `canvasWidth · DPR ≤ 700`, else 1024.
 
 Handoff rule: never swap on a frame where (a) shaders are not compiled, (b) the model has not been rendered once off-screen, (c) the pointer is mid-drag with velocity above a threshold (wait for release or slow-down; cap the wait at 1 s).
+
+Startup order (D-014): manifest request → canvas/WebGL context while it is in flight → manifest in: decode the inline poster, run QualityPolicy, issue the proxy request → build the stage (environment deferred) → poster on screen (TTFV) → first decoded video frame replaces it (`ttProxyFrame`) → three GOPs decodable (TTI): build the PMREM environment and import `@cuep3d/progressive-loader` → tiers.
 
 ## 7. Build flow (CLI)
 

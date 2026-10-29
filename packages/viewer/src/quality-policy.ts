@@ -66,9 +66,14 @@ export const QUALITY_POLICY_THRESHOLDS = {
    * (small physical surface, soft "this might be a phone" signal — never
    * decisive alone). */
   smallPhysicalCanvasPx: 500,
-  /** downlink in Mbit/s below which the link is treated as slow even if
-   * `effectiveType` is unavailable (Safari does not expose it). */
-  slowDownlinkMbps: 1.5,
+  /** downlink in Mbit/s below which the link is treated as slow even when
+   * `effectiveType` says '4g' (Chromium's '4g' bucket starts near 0.7 Mbps,
+   * so it covers every link this project calls slow) or is unavailable
+   * (Safari does not expose it). 2, not 1.5: the project's own `3g-fast`
+   * preset is 1.6 Mbps, and Chromium reports it as '4g' with a downlink of
+   * 1.55 — at 1.5 the one link §10 defines as slow was taking the
+   * `parallel` path and sharing its first second with L0 (D-014). */
+  slowDownlinkMbps: 2,
   /** Score thresholds classifying into low/mid/high (see classifyDeviceTier). */
   lowScore: -3,
   highScore: 3,

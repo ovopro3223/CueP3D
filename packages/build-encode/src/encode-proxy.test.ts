@@ -1,9 +1,10 @@
-import { mkdtemp, readdir, rm, stat } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { ProxyVariantSchema } from '@cuep3d/manifest';
+import { ProxyPosterSchema, ProxyVariantSchema } from '@cuep3d/manifest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { encodeProxy } from './encode-proxy.js';
+import { readProxyPoster } from './poster.js';
 import { probeKeyframeIndices, probeVideoStream } from './probe.js';
 import { generateFixtureFrames } from './test-support/fixture-frames.js';
 
@@ -92,6 +93,20 @@ describe('encodeProxy (full pipeline, libaom — deterministic across machines/C
         color_range: 'tv',
       });
     }
+  });
+
+  it('readProxyPoster inlines exactly frame 0 of the AVIF sequence as a data: URL (D-014)', async () => {
+    const poster = await readProxyPoster(variants, outDir);
+    const firstStill = await readFile(path.join(outDir, 'frames-512', '000.avif'));
+    expect(poster.codec).toBe('avif');
+    expect(poster.width).toBe(512);
+    expect(poster.height).toBe(512);
+    expect(poster.bytes).toBe(firstStill.byteLength);
+    expect(poster.url.startsWith('data:image/avif;base64,')).toBe(true);
+    expect(Buffer.from(poster.url.slice('data:image/avif;base64,'.length), 'base64')).toEqual(
+      firstStill,
+    );
+    expect(() => ProxyPosterSchema.parse(poster)).not.toThrow();
   });
 
   it('url for the AVIF sequence carries the {i} placeholder, not a resolved index', () => {

@@ -1,6 +1,6 @@
 import { resolvePolicyOverrides } from './device-policy.js';
 import { findModel, modelBaseUrl, DEMO_MODELS } from './models.js';
-import { mountPlainPane, type PlainPaneHandle } from './plain-pane.js';
+import type { PlainPaneHandle } from './plain-pane.js';
 import { mountCueP3DPane, type CueP3DPaneHandle } from './cuep3d-pane.js';
 import { exposeBenchState } from './bench-hook.js';
 
@@ -57,15 +57,24 @@ function updateAttribution(slug: string): void {
   attributionEl.append(link);
 }
 
-const plainPane: PlainPaneHandle | null = showPlain
-  ? mountPlainPane({
+// Both panes are dynamic imports (D-014): this entry module stays a few KB,
+// so neither pane's code — three.js and GLTFLoader for Plain, three.js,
+// mp4box and the viewer for CueP3D — is downloaded before the page knows
+// which pane(s) it is showing. `?mode=plain` never fetches CueP3D's code
+// and `?mode=cuep3d` never fetches the Plain pane's, which keeps the
+// bench's two columns independent of each other's bundle weight.
+let plainPane: PlainPaneHandle | null = null;
+if (showPlain) {
+  void import('./plain-pane.js').then(({ mountPlainPane }) => {
+    plainPane = mountPlainPane({
       container: plainViewport,
       metricsEl: plainMetrics,
       baseUrl: modelBaseUrl(findModel(picker.value)),
       reducedMotion,
       ...(debugMode ? { onUpdate: (state, metrics) => exposeBenchState(state, metrics) } : {}),
-    })
-  : null;
+    });
+  });
+}
 
 let cuep3dPane: CueP3DPaneHandle | null = null;
 if (showCueP3D) {

@@ -134,6 +134,20 @@ describe('chooseQuality (table-driven)', () => {
     expect(decision.maxTier).toBe('L2');
   });
 
+  it("the project's own 3g-fast preset (1.6 Mbps; Chromium reports '4g', downlink 1.55) is a slow link → serial", () => {
+    const decision = chooseQuality({
+      options: {
+        canvasCssWidth: 530,
+        dpr: 1,
+        connection: { effectiveType: '4g', downlink: 1.55 },
+        hardwareConcurrency: 24,
+      },
+      selectedVariant: null,
+      availableTierIds: ['L0', 'L1', 'L2'],
+    });
+    expect(decision.downloadMode).toBe('serial');
+  });
+
   it('low measured downlink forces serial even with no effectiveType (Safari-style) on a high-end device', () => {
     const decision = chooseQuality({
       options: opts({

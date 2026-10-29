@@ -69,6 +69,16 @@ describe.skipIf(!toktxAvailable || !sampleAvailable)(
         for (const tier of manifest.tiers) {
           await expect(stat(path.join(outDir, tier.url))).resolves.toBeDefined();
         }
+
+        // D-014: the manifest carries frame 0 of the AVIF sequence inline.
+        const sequence = manifest.proxy.variants.find((v) => v.kind === 'image-sequence');
+        expect(sequence).toBeDefined();
+        const firstStill = await readFile(path.join(outDir, sequence!.url.replace('{i}', '000')));
+        expect(manifest.proxy.poster?.codec).toBe('avif');
+        expect(manifest.proxy.poster?.bytes).toBe(firstStill.byteLength);
+        expect(manifest.proxy.poster?.url).toBe(
+          `data:image/avif;base64,${firstStill.toString('base64')}`,
+        );
         for (const variant of manifest.proxy.variants) {
           const samplePathForVariant =
             variant.kind === 'video' ? variant.url : variant.url.replace('{i}', '000');

@@ -26,15 +26,24 @@ async function createViewerOnPage(page: Page): Promise<number> {
   });
 }
 
+let releaseL0: () => void = () => {};
+
 test.beforeEach(async ({ page }) => {
-  // The fixture's L0 (a small, textureless sphere) now loads and warms in
-  // well under 100ms — fast enough that, without this, warm() can resolve
-  // and the handoff's one-time fast-drag check can run before
+  // The fixture's L0 (a small, textureless sphere) loads and warms in well
+  // under 100ms — fast enough that, without this, warm() can resolve and
+  // the handoff's one-time fast-drag check can run before
   // flingDuringDrag()'s own pointerdown→(30ms)→pointermove sequence has
   // finished arriving, flaking this test on an unrelated race in the test
-  // itself (not the handoff rule). Same fix as handoff-pixel-diff.spec.ts.
+  // itself (not the handoff rule). L0 is held on the network until each
+  // test has started its fling and calls `releaseL0()` — explicit ordering
+  // rather than a fixed delay, for the reason given in
+  // handoff-pixel-diff.spec.ts's beforeEach.
+  let l0Held = true;
+  releaseL0 = () => {
+    l0Held = false;
+  };
   await page.route('**/fixtures/out-cube/model.L0.glb', async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    while (l0Held) await new Promise((resolve) => setTimeout(resolve, 25));
     await route.continue();
   });
   await page.goto('/');
@@ -45,6 +54,7 @@ test('handoff waits out a fast drag instead of swapping mid-fling', async ({ pag
   await page.evaluate((id) => window.Harness.waitForState(id, 'proxy-ready', 10_000), id);
 
   await page.evaluate((id) => window.Harness.flingDuringDrag(id), id);
+  releaseL0();
 
   // Give L0 comfortably enough time to load and warm — if the handoff
   // rule did not hold off on a fast drag, the viewer would already be
@@ -69,6 +79,7 @@ test('an unreleased fast drag is overridden by the 1s cap', async ({ page }) => 
 
   const t0 = await page.evaluate(() => window.Harness.now());
   await page.evaluate((id) => window.Harness.flingDuringDrag(id), id);
+  releaseL0();
   // Never released, never slows down — only the cap can let this proceed.
 
   const reachedLive = await page.evaluate(

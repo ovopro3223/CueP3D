@@ -44,6 +44,15 @@ test('dispose() releases every GPU resource, the render loop, and the canvas ele
     while (proxyHeld) await new Promise((resolve) => setTimeout(resolve, 25));
     await route.continue();
   });
+  // Same reasoning for the inline poster (D-014): it is decoded and
+  // uploaded ~20 ms after the manifest arrives, with no request to hold
+  // back, so serve this test a manifest without it.
+  await page.route('**/fixtures/out-cube/cuep3d.json', async (route) => {
+    const response = await route.fetch();
+    const manifest = (await response.json()) as { proxy: { poster?: unknown } };
+    delete manifest.proxy.poster;
+    await route.fulfill({ response, json: manifest });
+  });
 
   const id = await createViewerOnPage(page);
 

@@ -35,6 +35,24 @@ export const ProxyVariantSchema = z.object({
   frames: z.number().int().positive(),
 });
 
+/**
+ * Frame 0 of ring 0 as one AVIF still, carried inside the manifest as a
+ * `data:` URL so the first visual costs no round trip beyond the manifest's
+ * own (D-014). Encoded from the same rendered PNG as the video variants, at
+ * the smallest variant size, so it is the picture the proxy's first
+ * keyframe will show a moment later. Optional: a manifest without it is
+ * still valid and the viewer simply waits for the first decoded video frame.
+ */
+export const ProxyPosterSchema = z.object({
+  codec: z.literal('avif'),
+  /** A `data:image/avif;base64,…` URL (or any URL resolvable against the manifest). */
+  url: z.string().min(1),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  /** Encoded AVIF size in bytes (before base64). */
+  bytes: z.number().int().nonnegative(),
+});
+
 export const TierSchema = z.object({
   id: z.enum(['L0', 'L1', 'L2']),
   url: z.string().min(1),
@@ -64,6 +82,7 @@ export const ManifestSchema = z.object({
     fps: z.number().positive(),
     background: z.string().min(1),
     variants: z.array(ProxyVariantSchema).min(1),
+    poster: ProxyPosterSchema.optional(),
   }),
   tiers: z.array(TierSchema).min(1),
 });
@@ -71,5 +90,6 @@ export const ManifestSchema = z.object({
 export type Vec3 = z.infer<typeof Vec3Schema>;
 export type StageParams = z.infer<typeof StageParamsSchema>;
 export type ProxyVariant = z.infer<typeof ProxyVariantSchema>;
+export type ProxyPoster = z.infer<typeof ProxyPosterSchema>;
 export type Tier = z.infer<typeof TierSchema>;
 export type Manifest = z.infer<typeof ManifestSchema>;

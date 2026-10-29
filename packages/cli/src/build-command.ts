@@ -2,7 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { buildGeometry } from '@cuep3d/build-geometry';
 import { renderProxyFrames } from '@cuep3d/build-proxy';
-import { encodeProxy } from '@cuep3d/build-encode';
+import { encodeProxy, readProxyPoster } from '@cuep3d/build-encode';
 import { validateManifest, type Manifest } from '@cuep3d/manifest';
 import type { BuildArgs } from './parse-build-args.js';
 
@@ -62,6 +62,10 @@ export async function runBuild(args: BuildArgs): Promise<void> {
     encoder: args.encoder,
   });
   console.log(`  variants: ${variants.map((v) => `${v.codec}@${v.width}`).join(', ')}`);
+  // D-014: frame 0 of the smallest AVIF sequence, inlined so the first
+  // visual needs no request beyond the manifest itself.
+  const poster = await readProxyPoster(variants, args.outDir);
+  console.log(`  poster: avif@${poster.width}, ${poster.bytes} bytes inline`);
 
   const manifest: Manifest = {
     version: 1,
@@ -76,6 +80,7 @@ export async function runBuild(args: BuildArgs): Promise<void> {
       fps: FPS,
       background: args.background,
       variants,
+      poster,
     },
     tiers: geometry.tiers,
   };

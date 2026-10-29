@@ -21,6 +21,7 @@ function buildReport(): SweepReport {
           state: 'settled',
           metrics: {
             ttfv: 113,
+            ttProxyFrame: 390,
             tti: 114,
             ttLive: 400,
             ttSettled: 613,
@@ -62,10 +63,10 @@ describe('renderBenchmarksMarkdown', () => {
   it('renders a row per model/mode cell with formatted viewer-internal and wall-clock metrics', () => {
     const md = renderBenchmarksMarkdown(buildReport());
     expect(md).toContain(
-      '| Avocado | cuep3d | settled | 113 ms | 1850 ms | 114 ms | 1851 ms | 400 ms | 613 ms |',
+      '| Avocado | cuep3d | settled | 113 ms | 1850 ms | 390 ms | 114 ms | 1851 ms | 400 ms | 613 ms |',
     );
     expect(md).toContain(
-      '| Avocado | plain | rendered | 243 ms | 1950 ms | 243 ms | 1950 ms | — | — |',
+      '| Avocado | plain | rendered | 243 ms | 1950 ms | — | 243 ms | 1950 ms | — | — |',
     );
   });
 

@@ -85,6 +85,7 @@ export async function mountCueP3DPane(options: CueP3DPaneOptions): Promise<CueP3
   function renderMetricsFromViewer(): void {
     renderMetricsStrip(metricsEl, { label: 'State', value: el.state }, [
       { label: 'TTFV', value: formatMs(el.metrics.ttfv) },
+      { label: 'First video frame', value: formatMs(el.metrics.ttProxyFrame) },
       { label: 'TTI', value: formatMs(el.metrics.tti) },
       { label: 'Time to live 3D', value: formatMs(el.metrics.ttLive) },
       { label: 'Time to settled', value: formatMs(el.metrics.ttSettled) },
@@ -93,6 +94,7 @@ export async function mountCueP3DPane(options: CueP3DPaneOptions): Promise<CueP3
     ]);
     onUpdate?.(el.state, {
       ttfv: el.metrics.ttfv,
+      ttProxyFrame: el.metrics.ttProxyFrame,
       tti: el.metrics.tti,
       ttLive: el.metrics.ttLive,
       ttSettled: el.metrics.ttSettled,

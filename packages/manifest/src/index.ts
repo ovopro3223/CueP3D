@@ -2,11 +2,13 @@ export {
   ManifestSchema,
   StageParamsSchema,
   ProxyVariantSchema,
+  ProxyPosterSchema,
   TierSchema,
   Vec3Schema,
   type Manifest,
   type StageParams,
   type ProxyVariant,
+  type ProxyPoster,
   type Tier,
   type Vec3,
 } from './schema.js';

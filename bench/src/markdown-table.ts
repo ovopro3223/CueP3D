@@ -2,15 +2,16 @@ import type { SweepReport, SweepCell } from './types.js';
 import { formatBytes, formatMs } from './format.js';
 
 const TABLE_HEADER =
-  '| Model | Mode | State | TTFV | Wall TTFV | TTI | Wall TTI | Time to live | Time to settled | Bytes before first visual | Bytes total |';
-const TABLE_DIVIDER = '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |';
+  '| Model | Mode | State | TTFV | Wall TTFV | First video frame | TTI | Wall TTI | Time to live | Time to settled | Bytes before first visual | Bytes total |';
+const TABLE_DIVIDER = '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |';
 
 function renderRow(cell: SweepCell, modelLabel: string): string {
   const { medianResult } = cell;
   const { metrics, wallClockMs } = medianResult;
   return (
     `| ${modelLabel} | ${cell.mode} | ${medianResult.state} | ${formatMs(metrics.ttfv)} | ` +
-    `${formatMs(wallClockMs.ttfv)} | ${formatMs(metrics.tti)} | ${formatMs(wallClockMs.tti)} | ` +
+    `${formatMs(wallClockMs.ttfv)} | ${formatMs(metrics.ttProxyFrame)} | ${formatMs(metrics.tti)} | ` +
+    `${formatMs(wallClockMs.tti)} | ` +
     `${formatMs(metrics.ttLive)} | ${formatMs(metrics.ttSettled)} | ` +
     `${formatBytes(metrics.bytesBeforeFirstVisual)} | ${formatBytes(metrics.bytesTotal)} |`
   );
@@ -34,7 +35,11 @@ export function renderBenchmarksMarkdown(report: SweepReport): string {
       "from `createViewer()`'s own construction — they exclude however long the page's JS " +
       'bundle itself took to fetch/parse/execute first. `Wall TTFV`/`Wall TTI` are the same two ' +
       "marks timed from navigation start instead (what a real visitor's clock would show); see " +
-      'docs/reports/P7b-report.md for why the two differ.',
+      'docs/reports/P7b-report.md for why the two differ. For CueP3D, `TTFV` is the inline ' +
+      'poster carried by the manifest (frame 0 as an AVIF still, D-014) and `First video frame` ' +
+      'is the first decoded frame of the AV1 proxy — the number `TTFV` reported before D-014; ' +
+      '`Bytes before first visual` is then the manifest itself (poster included). ' +
+      'Plain has no poster or proxy, so that column is empty for it.',
   );
   lines.push('');
   lines.push('## Presets');

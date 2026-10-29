@@ -1,4 +1,5 @@
 export { encodeProxy } from './encode-proxy.js';
+export { readProxyPoster } from './poster.js';
 export { assertFreeCodecs, FORBIDDEN_CODEC_TOKENS, type CodecViolation } from './codec-policy.js';
 export {
   selectAv1Encoder,

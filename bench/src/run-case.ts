@@ -92,7 +92,16 @@ export async function runCase(browser: Browser, options: RunCaseOptions): Promis
       );
     }
     if (snapshot.state !== terminal) {
-      throw new Error(`bench: ${label} ended in state "${snapshot.state}", expected "${terminal}"`);
+      // Both panes print their failure reason into a `.viewport-note`; read it
+      // so a failed sweep says *why* (a 25-minute run that dies with just a
+      // state name is not diagnosable after the fact).
+      const note = await page.evaluate(
+        () => document.querySelector('.viewport-note')?.textContent?.trim() ?? '',
+      );
+      throw new Error(
+        `bench: ${label} ended in state "${snapshot.state}", expected "${terminal}"` +
+          (note ? ` — page says: ${note}` : ''),
+      );
     }
     if (!snapshot.metrics) {
       throw new Error(`bench: ${label} reached "${terminal}" but window.__cuep3dMetrics is unset`);

@@ -11,7 +11,7 @@ export function median(values: readonly number[]): number | undefined {
   return (lo + hi) / 2;
 }
 
-const METRIC_FIELDS = ['ttfv', 'tti', 'ttLive', 'ttSettled'] as const;
+const METRIC_FIELDS = ['ttfv', 'ttProxyFrame', 'tti', 'ttLive', 'ttSettled'] as const;
 
 function medianOfDefined(values: readonly (number | undefined)[]): number | undefined {
   const defined = values.filter((v): v is number => v !== undefined);
