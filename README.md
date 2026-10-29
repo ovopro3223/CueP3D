@@ -2,14 +2,26 @@
 
 **A 3D model on screen in a few hundred milliseconds — then a seamless handoff to the real thing.**
 
-> Status: design complete, implementation in progress. See `docs/02-plan.md`.
+> Status: working end to end — build pipeline, viewer, demo and real benchmarks all real, all in this repo. Not published to npm yet; build it from source (Quick start below). See `docs/02-plan.md` for how it was built and `BENCHMARKS.md` for the numbers behind the claims below.
 
-Loading a glTF on the web means staring at a spinner until every byte of geometry and texture has arrived, parsed, hit the GPU and compiled its shaders. Video solved this a decade ago with adaptive streaming. Understudy brings the same idea to 3D: every model gets a tiny, hardware-decoded **AV1 orbit video** rendered by the viewer's own camera rig. It shows up after the first keyframe, you can already drag to rotate it, and while you do, the real model streams in as a quality ladder (L0 → L1 → L2). When the first tier is loaded, shader-compiled and rendered once off-screen, the viewer sets the live camera to the exact angle you scrubbed to and cross-fades. Nothing jumps.
+![Understudy demo: a proxy frame appears almost instantly, the visitor drags to orbit it, then it hands off to the live, interactive 3D model](docs/media/demo.gif)
+
+Loading a glTF on the web means staring at a spinner until every byte of geometry and texture has arrived, parsed, hit the GPU and compiled its shaders. Video solved this a decade ago with adaptive streaming. Understudy brings the same idea to 3D: every model gets a tiny, hardware-decoded **AV1 orbit video** rendered by the viewer's own camera rig. It shows up almost instantly, you can already drag to rotate it, and while you do, the real model streams in as a quality ladder (L0 → L1 → L2). When the first tier is loaded, shader-compiled and rendered once off-screen, the viewer sets the live camera to the exact angle you scrubbed to and cross-fades. Nothing jumps.
 
 ```
-page load ─► first AV1 keyframe (~30 KB) ─► visible + draggable ─► L0 glTF warm ─► cross-fade ─► live 3D ─► L1 ─► L2
-             ~150–500 ms on 3G                                      no stall, same camera, same lighting
+page load ─► first AV1 keyframe ─► visible + draggable ─► L0 glTF warm ─► cross-fade ─► live 3D ─► L1 ─► L2
+             ~150–600 ms          no stall, same camera, same lighting
 ```
+
+**Real measured numbers** (median of 3 runs, real Chromium network throttling, real built models — full table in `BENCHMARKS.md`):
+
+| Preset (download / RTT)     | Plain `GLTFLoader` | Understudy | Speedup     |
+| --------------------------- | ------------------ | ---------- | ----------- |
+| wifi (30 Mbps / 20 ms)      | 2.5–3.2 s          | 464–479 ms | ~5–6×       |
+| 4g (9 Mbps / 60 ms)         | 7.6–9.9 s          | 498–547 ms | ~15–18×     |
+| 3g-fast (1.6 Mbps / 150 ms) | 41–54 **s**        | 593–605 ms | **~69–89×** |
+
+Two things worth being upfront about, in the spirit of this project's own rigor (see `docs/00-decisions.md` D-005d/D-005e for the full reasoning): the TTFV numbers above are the viewer's own internal timing, measured from when it starts working — not from page navigation, since the demo app's own unoptimized JS bundle adds real time on top (~2.75 s wall-clock on 3g-fast; code-splitting that away is a tracked roadmap item). And the project's own `≤ 500 ms` TTFV goal is **narrowly missed** (593–605 ms) on the slowest preset — reported as measured, not adjusted to pass.
 
 ## Why this exists
 
@@ -31,29 +43,48 @@ The reasons, stated carefully:
 
 ## Quick start
 
-Prerequisites (all free): Node 20+, pnpm, `ffmpeg`/`ffprobe` built with `libaom-av1` (SVT-AV1 or NVENC are used automatically when present), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software) for KTX2 textures.
+Not published to npm — clone and build it. Prerequisites (all free): Node 20+, pnpm, `ffmpeg`/`ffprobe` built with `libaom-av1` (SVT-AV1 or NVENC are used automatically when present), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software) for KTX2 textures.
 
 ```bash
+git clone https://github.com/<owner>/understudy.git && cd understudy
 pnpm install
+pnpm run build
 pnpm understudy build path/to/model.glb -o public/models/model
 ```
 
+`packages/viewer/dist/index.js` is a real ESM module — point a bundler (or an import map) at it from your own app:
+
 ```html
-<script
-  type="module"
-  src="https://cdn.jsdelivr.net/npm/@understudy3d/viewer/dist/understudy-viewer.js"
-></script>
+<script type="importmap">
+  { "imports": { "@understudy3d/viewer": "/path/to/packages/viewer/dist/index.js" } }
+</script>
+<script type="module">
+  import '@understudy3d/viewer'; // registers <understudy-viewer>, no further setup
+</script>
 <understudy-viewer
   src="/models/model/understudy.json"
   style="width:100%;aspect-ratio:1"
 ></understudy-viewer>
 ```
 
-The build writes `understudy.json` (manifest), `model.L0.glb`/`L1`/`L2` (meshopt + KTX2), `proxy-1024.av1.mp4`, `proxy-512.av1.mp4`, `proxy-512.vp9.mp4`, and `frames-512/*.avif`.
+The build writes `understudy.json` (manifest), `model.L0.glb`/`L1`/`L2` (meshopt + KTX2), `proxy-1024.av1.mp4`, `proxy-512.av1.mp4`, `proxy-512.vp9.mp4`, and `frames-512/*.avif`. See `apps/demo` for a complete, working example (it's the app the GIF above was recorded from): `pnpm run fetch-samples && pnpm run demo:assets && pnpm --filter @understudy3d/demo run dev`.
 
 ## How it works
 
 See `docs/01-design.md` for the full design. In short: a manifest describes the bounds, the exact camera/lighting parameters, the proxy variants and the tier ladder. At run time a quality policy picks a proxy variant and a maximum tier from the device and network; the proxy player demuxes the MP4 with mp4box.js and decodes with WebCodecs (GOP-aware random access, LRU frame cache); the progressive loader loads tiers and _warms_ them (shader compile + off-screen render) before anything is shown; the stage draws proxy frames as a screen-aligned quad in the same WebGL scene so the cross-fade is a single-canvas operation.
+
+## Browser support
+
+`proxy-player`'s `selectProxyVariant` probes capability at runtime (`VideoDecoder.isConfigSupported`, then `canPlayType`, then an AVIF probe) rather than assuming anything from this table — it's here as background, not as logic the code trusts.
+
+| Browser                           | WebCodecs AV1                                                     | `<video>` AV1 | VP9 | AVIF |
+| --------------------------------- | ----------------------------------------------------------------- | ------------- | --- | ---- |
+| Chrome / Edge (desktop + Android) | Yes                                                               | Yes           | Yes | Yes  |
+| Firefox (desktop)                 | Yes                                                               | Yes           | Yes | Yes  |
+| Safari (macOS)                    | Hardware only — M3 and later                                      | same          | Yes | Yes  |
+| Safari (iOS/iPadOS)               | Hardware only — A17 Pro and later (iPhone 15 Pro+, iPhone 16/16e) | same          | Yes | Yes  |
+
+Safari without AV1 hardware (Intel Macs, M1/M2, pre-15-Pro iPhones) and any browser with neither WebCodecs AV1 nor `<video>` AV1 fall through to VP9, then AVIF, then straight to progressive 3D with no stand-in. H.264 is never in the chain. This table is a snapshot, not load-bearing — verify against current WebKit/Chromium release notes before relying on it; see `docs/codec-policy.md`.
 
 ## Prior art
 
@@ -61,7 +92,20 @@ Progressive LOD streaming for three.js exists in [`@needle-tools/gltf-progressiv
 
 ## Limitations (v1)
 
-Object-centric content only (orbit camera). Single elevation ring. No transparent-background video. No animation playback inside the stand-in. See `docs/roadmap.md`.
+Object-centric content only (orbit camera). Single elevation ring. No transparent-background video. No animation playback inside the stand-in. `<understudy-viewer>`'s `policy`/`debug` options are JS-API-only (not element attributes). The demo app's own JS bundle isn't code-split, so its wall-clock TTFV is higher than the viewer's own (see "Real measured numbers" above and D-005e). Full list: `docs/roadmap.md`.
+
+## Development
+
+Built by Claude agents working in parallel git worktrees, one package per agent, against frozen contracts (`docs/01-design.md` §5) and a written plan (`docs/02-plan.md`) — each agent's report is in `docs/reports/`, and real bugs found only by merging and running the whole system live in a browser are in `docs/reports/wave1-integration-report.md` and `wave2-integration-report.md`. This process — not just the code it produced — is part of what this repository demonstrates.
+
+```bash
+pnpm install
+pnpm run lint && pnpm run typecheck && pnpm run test   # 299+ tests
+node scripts/assert-free-codecs.mjs fixtures            # the D-004 codec gate
+pnpm run bench                                           # real network-throttled numbers (~25 min)
+```
+
+Workspace layout: `packages/manifest`, `stage` (shared, frozen after Wave 0), `build-geometry`, `build-proxy`, `build-encode` (the CLI pipeline), `proxy-player`, `progressive-loader`, `viewer` (the runtime), `cli`; `apps/demo` and `bench` at the top level. See `docs/architecture.md` for the package map and data flow.
 
 ## License
 

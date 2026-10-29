@@ -36,8 +36,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
       - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright's OS dependencies (cache hit still needs these)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       - name: Fetch sample models
         run: pnpm run fetch-samples
@@ -62,6 +74,9 @@ jobs:
 
       - name: Codec policy gate
         run: pnpm run assert-free-codecs -- fixtures /tmp/understudy-out
+
+      - name: License policy gate
+        run: pnpm run check-licenses
 
       - name: Upload benchmarks (if present)
         if: always()

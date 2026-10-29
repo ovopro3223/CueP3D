@@ -1,0 +1,76 @@
+name: Deploy demo to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  KTX_SOFTWARE_VERSION: '4.4.2'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install toktx (KTX-Software)
+        run: |
+          curl -fsSL -o ktx.deb \
+            "https://github.com/KhronosGroup/KTX-Software/releases/download/v${KTX_SOFTWARE_VERSION}/KTX-Software-${KTX_SOFTWARE_VERSION}-Linux-x86_64.deb"
+          sudo apt-get install -y ./ktx.deb
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch sample models
+        run: pnpm run fetch-samples
+
+      - name: Build demo assets
+        run: pnpm run demo:assets
+
+      - name: Build demo site
+        # GitHub Pages serves a project site from /<repo-name>/ — derive it
+        # from the actual repo name rather than hardcoding one (D-002 never
+        # settled a final GitHub repo name; apps/demo/vite.config.ts's own
+        # default is just a placeholder for local dev).
+        run: pnpm --filter @understudy3d/demo run build
+        env:
+          UNDERSTUDY_DEMO_BASE: /${{ github.event.repository.name }}/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/demo/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
