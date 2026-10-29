@@ -92,7 +92,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test('the last proxy frame and the first live frame match within 2% mean abs diff, with no long task >= 50ms across the handoff', async ({
+test('the last proxy frame and the first live frame match within the AV1-noise-adjusted budget (8%, see docs/change-requests/P6-av1-color-metadata.md), with no long task >= 50ms across the handoff', async ({
   page,
 }: {
   page: Page;
