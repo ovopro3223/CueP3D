@@ -47,12 +47,17 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Playwright browsers
+        # Unscoped `pnpm exec` recurses into every workspace package and
+        # fails on the first one without a local `playwright` binary
+        # (ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL) — scope it to a package that
+        # actually depends on playwright. The browser binary cache
+        # (~/.cache/ms-playwright) is machine-wide, not per-package.
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --filter @cuep3d/viewer exec playwright install --with-deps chromium
 
       - name: Install Playwright's OS dependencies (cache hit still needs these)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
+        run: pnpm --filter @cuep3d/viewer exec playwright install-deps chromium
 
       - name: Fetch sample models
         run: pnpm run fetch-samples
@@ -73,7 +78,9 @@ jobs:
         run: pnpm run test
 
       - name: Build one sample via the CLI
-        run: pnpm run cuep3d -- build samples/Avocado.glb -o /tmp/cuep3d-out/avocado
+        # No `--` separator: the cuep3d script forwards argv[0] straight to
+        # bin.ts's command check, and a literal "--" there isn't "build".
+        run: pnpm run cuep3d build samples/Avocado.glb -o /tmp/cuep3d-out/avocado
 
       - name: Codec policy gate
         run: pnpm run assert-free-codecs -- fixtures /tmp/cuep3d-out
