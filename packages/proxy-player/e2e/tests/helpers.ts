@@ -1,48 +1,15 @@
-import { execFile } from 'node:child_process';
-import { mkdir } from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
 import type { Page } from '@playwright/test';
 
-const execFileAsync = promisify(execFile);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const generatedDir = path.join(__dirname, '..', '.generated');
-
-// Mirrors scripts/make-fixtures.mjs exactly (same lavfi graph, same drawtext
-// filter) so a regenerated frame N is pixel-for-pixel what frame N looked
-// like before AV1/VP9 encoding — the ground truth the decoded output is
-// checked against.
-const FONT =
-  process.platform === 'win32'
-    ? 'C\\:/Windows/Fonts/arial.ttf'
-    : '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
-const SIZE = 256;
-const FPS = 24;
-const FRAMES = 72;
-
-export async function generateReferenceFrame(index: number): Promise<string> {
-  await mkdir(generatedDir, { recursive: true });
-  const outPath = path.join(generatedDir, `ref-${String(index).padStart(3, '0')}.png`);
-  const drawtext =
-    `drawtext=fontfile='${FONT}':text='%{eif\\:n\\:d\\:3}':` +
-    `x=(w-tw)/2:y=(h-th)/2:fontsize=64:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=12`;
-  const source = `testsrc2=size=${SIZE}x${SIZE}:rate=${FPS}:duration=${FRAMES / FPS}`;
-  await execFileAsync('ffmpeg', [
-    '-y',
-    '-f',
-    'lavfi',
-    '-i',
-    `${source},${drawtext},select=eq(n\\,${index})`,
-    '-vframes',
-    '1',
-    '-update',
-    '1',
-    outPath,
-    '-loglevel',
-    'error',
-  ]);
-  return `generated/ref-${String(index).padStart(3, '0')}.png`;
+/**
+ * Ground truth for frame N: the exact PNG scripts/make-fixtures.mjs encoded
+ * the fixtures from, committed under fixtures/proxy-ref/ (served by
+ * server.mjs at /fixtures/). These used to be regenerated here at test time
+ * with ffmpeg's drawtext, which tied the reference to whichever font the
+ * machine had — Arial on Windows, DejaVu on Linux — so a Linux runner was
+ * comparing decoded Arial frames against DejaVu references.
+ */
+export function referenceFrame(index: number): string {
+  return `fixtures/proxy-ref/${String(index).padStart(3, '0')}.png`;
 }
 
 export const FIXTURES = {
@@ -53,7 +20,7 @@ export const FIXTURES = {
     url: 'proxy-fixture.av1.mp4',
     width: 256,
     height: 256,
-    bytes: 121874,
+    bytes: 124078,
     gop: 8,
     frames: 72,
   },
@@ -64,7 +31,7 @@ export const FIXTURES = {
     url: 'proxy-fixture.vp9.mp4',
     width: 256,
     height: 256,
-    bytes: 175690,
+    bytes: 182092,
     gop: 8,
     frames: 72,
   },
@@ -74,7 +41,7 @@ export const FIXTURES = {
     url: 'avif/{i}.avif',
     width: 256,
     height: 256,
-    bytes: 502091,
+    bytes: 258811,
     frames: 72,
   },
 };

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { createPlayer, FIXTURES, generateReferenceFrame, harness } from './helpers.js';
+import { createPlayer, FIXTURES, referenceFrame, harness } from './helpers.js';
 
 async function disableVideoDecoder(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -42,7 +42,7 @@ test.describe('<video> element fallback (milestone C)', () => {
     expect(result.kind).toBe('HTMLVideoElement');
     expect(result.elapsedMs).toBeLessThan(300);
 
-    const ref17 = await generateReferenceFrame(17);
+    const ref17 = referenceFrame(17);
     const diff = await harness(page).compareFrameToReference(
       id,
       17,
@@ -69,7 +69,7 @@ test.describe('<video> element fallback (milestone C)', () => {
     }, id);
     expect(results).toHaveLength(3);
 
-    const ref40 = await generateReferenceFrame(40);
+    const ref40 = referenceFrame(40);
     const diff = await harness(page).compareFrameToReference(
       id,
       40,
@@ -111,7 +111,7 @@ test.describe('AVIF sequence fallback (milestone D)', () => {
     const first = await harness(page).waitFirstFrame(id);
     expect(first.kind).toBe('ImageBitmap');
 
-    const ref17 = await generateReferenceFrame(17);
+    const ref17 = referenceFrame(17);
     const diff = await harness(page).compareFrameToReference(
       id,
       17,

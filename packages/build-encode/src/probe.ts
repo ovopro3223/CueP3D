@@ -5,6 +5,10 @@ export interface ProbedStream {
   width?: number;
   height?: number;
   nb_frames?: string;
+  color_space?: string;
+  color_primaries?: string;
+  color_transfer?: string;
+  color_range?: string;
 }
 
 interface StreamsJson<T> {
@@ -18,7 +22,7 @@ export async function probeVideoStream(file: string): Promise<ProbedStream> {
     '-select_streams',
     'v:0',
     '-show_entries',
-    'stream=codec_name,width,height,nb_frames',
+    'stream=codec_name,width,height,nb_frames,color_space,color_primaries,color_transfer,color_range',
     '-of',
     'json',
     file,

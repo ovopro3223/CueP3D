@@ -1,5 +1,6 @@
 import os from 'node:os';
 import path from 'node:path';
+import { COLOR_METADATA_ARGS, SCALE_COLOR_OPTS, SETPARAMS_COLOR_FILTER } from './color.js';
 import { runFfmpeg } from './ffmpeg-process.js';
 
 export interface EncodeAvifSequenceOptions {
@@ -24,7 +25,7 @@ async function encodeOneAvif(
     '-i',
     path.join(framesDir, file),
     '-vf',
-    `scale=${size}:${size}:flags=lanczos`,
+    `scale=${size}:${size}:flags=lanczos:${SCALE_COLOR_OPTS},${SETPARAMS_COLOR_FILTER}`,
     '-c:v',
     'libaom-av1',
     '-still-picture',
@@ -33,6 +34,9 @@ async function encodeOneAvif(
     String(crf),
     '-cpu-used',
     '6',
+    '-pix_fmt',
+    'yuv420p',
+    ...COLOR_METADATA_ARGS,
     outFile,
   ]);
 }

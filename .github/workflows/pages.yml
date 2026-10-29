@@ -79,11 +79,13 @@ jobs:
         env:
           CUEP3D_DEMO_BASE: /${{ github.event.repository.name }}/
 
+      # Pages must already be enabled with the "GitHub Actions" source: the
+      # default GITHUB_TOKEN may read the Pages site but not create it
+      # (`enablement: true` fails with "Resource not accessible by
+      # integration"). Done once for this repo on 2026-10-29 via
+      # `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`,
+      # equivalent to Settings → Pages → Source → GitHub Actions.
       - uses: actions/configure-pages@v5
-        with:
-          # First deploy on a fresh repo: switch Pages to the "GitHub Actions"
-          # source instead of requiring a manual Settings → Pages step.
-          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:

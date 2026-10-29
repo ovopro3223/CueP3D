@@ -1,17 +1,20 @@
 import { expect, test } from '@playwright/test';
-import { createPlayer, FIXTURES, generateReferenceFrame, harness } from './helpers.js';
+import { createPlayer, FIXTURES, referenceFrame, harness } from './helpers.js';
 
 /**
  * Milestone A. Decodes real frames from the committed AV1 fixture and
- * checks them against a freshly ffmpeg-regenerated ground truth for the
- * *same* frame index — not just "some" frame. Measured empirically against
- * this fixture: a correctly-decoded frame sits around 4% mean abs diff from
- * its own regenerated reference (AV1/testsrc2 compression noise, not an
- * error); comparing against a reference from the *opposite side of the
- * orbit* (deliberately far rather than the adjacent frame, whose content is
- * naturally close since testsrc2 moves continuously) reads at 10%+. That
- * gap — not an arbitrary absolute number — is what actually proves the
- * correct index was decoded.
+ * checks them against the committed ground-truth PNG for the *same* frame
+ * index — not just "some" frame. Measured on this fixture with explicit
+ * colour metadata in the bitstream (D-012): a correctly-decoded frame sits
+ * at ~1.2-1.3% mean abs diff from its own reference (AV1 compression noise
+ * plus 4:2:0 chroma, nothing else); comparing against a reference from the
+ * *opposite side of the orbit* (deliberately far rather than the adjacent
+ * frame, whose content is naturally close since testsrc2 moves
+ * continuously) reads 8-10%. That gap — not an arbitrary absolute number —
+ * is what actually proves the correct index was decoded. Before D-012 the
+ * same comparison read ~4% here and ~8% on Linux CI: with no colour config
+ * in the stream, each platform's WebCodecs path guessed a different
+ * YUV->RGB matrix/range (see packages/build-encode/src/color.ts).
  */
 test.describe('whole-file WebCodecs decode (milestone A)', () => {
   test('firstFrame resolves to a 256x256 VideoFrame', async ({ page }) => {
@@ -36,9 +39,9 @@ test.describe('whole-file WebCodecs decode (milestone A)', () => {
       const id = await createPlayer(page, FIXTURES.av1);
       await harness(page).waitFirstFrame(id);
 
-      const ownRef = await generateReferenceFrame(index);
+      const ownRef = referenceFrame(index);
       const farIndex = (index + 36) % 72; // opposite side of the 72-frame orbit
-      const farRef = await generateReferenceFrame(farIndex);
+      const farRef = referenceFrame(farIndex);
 
       const matching = await harness(page).compareFrameToReference(
         id,
@@ -51,9 +54,16 @@ test.describe('whole-file WebCodecs decode (milestone A)', () => {
         `http://localhost:4873/${farRef}`,
       );
 
+      console.log(
+        `frame ${index}: own-reference diff ${matching.meanAbsDiffPct.toFixed(3)}%, ` +
+          `far-reference (frame ${farIndex}) diff ${mismatched.meanAbsDiffPct.toFixed(3)}%`,
+      );
       expect(matching.meanAbsDiffPct).toBeLessThan(6);
-      expect(mismatched.meanAbsDiffPct).toBeGreaterThan(8);
-      expect(mismatched.meanAbsDiffPct).toBeGreaterThan(matching.meanAbsDiffPct * 1.8);
+      // The far frame's diff is pure content difference now (measured
+      // 8.1-10.3%), so the absolute floor sits below it and the real check
+      // is the ratio: measured 6-8x, asserted 3x.
+      expect(mismatched.meanAbsDiffPct).toBeGreaterThan(6);
+      expect(mismatched.meanAbsDiffPct).toBeGreaterThan(matching.meanAbsDiffPct * 3);
     });
   }
 
@@ -64,7 +74,7 @@ test.describe('whole-file WebCodecs decode (milestone A)', () => {
     const id = await createPlayer(page, FIXTURES.av1);
     await harness(page).waitFirstFrame(id);
 
-    const ref13 = await generateReferenceFrame(13);
+    const ref13 = referenceFrame(13);
     const result = await harness(page).compareFrameToReference(
       id,
       13,
@@ -81,7 +91,7 @@ test.describe('whole-file WebCodecs decode (milestone A)', () => {
     // 7 -> 8 (keyframe) -> 6: forward into a new GOP, then back into the
     // previous one, exercising both the incremental and random-access paths.
     for (const index of [7, 8, 6]) {
-      const ref = await generateReferenceFrame(index);
+      const ref = referenceFrame(index);
       const result = await harness(page).compareFrameToReference(
         id,
         index,
@@ -99,7 +109,7 @@ test.describe('VP9 variant via WebCodecs (D-004 fallback tier)', () => {
     const first = await harness(page).waitFirstFrame(id);
     expect(first.kind).toBe('VideoFrame');
 
-    const ref17 = await generateReferenceFrame(17);
+    const ref17 = referenceFrame(17);
     const result = await harness(page).compareFrameToReference(
       id,
       17,

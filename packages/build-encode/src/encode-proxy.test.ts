@@ -82,6 +82,18 @@ describe('encodeProxy (full pipeline, libaom — deterministic across machines/C
     expect(vp9Keyframes).toEqual(expected);
   });
 
+  it('tags every variant with explicit colour metadata (D-012), so no decoder has to guess the matrix or range', async () => {
+    for (const file of ['proxy-1024.av1.mp4', 'proxy-512.vp9.mp4', 'frames-512/000.avif']) {
+      const stream = await probeVideoStream(path.join(outDir, file));
+      expect(stream, file).toMatchObject({
+        color_space: 'bt709',
+        color_primaries: 'bt709',
+        color_transfer: 'iec61966-2-1',
+        color_range: 'tv',
+      });
+    }
+  });
+
   it('url for the AVIF sequence carries the {i} placeholder, not a resolved index', () => {
     const avifVariant = variants.find((v) => v.codec === 'avif')!;
     expect(avifVariant.url).toBe('frames-512/{i}.avif');

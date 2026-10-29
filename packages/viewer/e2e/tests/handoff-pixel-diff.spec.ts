@@ -160,6 +160,14 @@ test('the last proxy frame and the first live frame match within the AV1-noise-a
   // wrong camera/azimuth or a stale decoded frame reads far higher still
   // (double-exposure ghosting from one such bug, caught and fixed during
   // this same investigation, read ~79%).
+  //
+  // Update (D-012): explicit colour metadata in the bitstream took
+  // proxy-player's own canvas-path comparison from ~4% to ~1.3%, but left
+  // this number unchanged (5.197% after, 5.203% before, same fixture
+  // regenerated). So what remains here is not the bitstream: it is in how
+  // the decoded VideoFrame reaches the overlay texture (VideoFrame -> WebGL
+  // upload / texture colour handling in @cuep3d/stage), tracked in
+  // docs/roadmap.md.
   expect(diffPercent).toBeLessThan(8);
 
   const log = await page.evaluate((id) => window.Harness.getFullLog(id), id);

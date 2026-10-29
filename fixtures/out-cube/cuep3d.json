@@ -36,7 +36,7 @@
         "url": "proxy-256.av1.mp4",
         "width": 256,
         "height": 256,
-        "bytes": 36766,
+        "bytes": 37014,
         "gop": 8,
         "frames": 24
       },
@@ -47,7 +47,7 @@
         "url": "proxy-256.vp9.mp4",
         "width": 256,
         "height": 256,
-        "bytes": 196209,
+        "bytes": 198055,
         "gop": 8,
         "frames": 24
       },
@@ -57,7 +57,7 @@
         "url": "frames-256/{i}.avif",
         "width": 256,
         "height": 256,
-        "bytes": 480985,
+        "bytes": 200714,
         "frames": 24
       }
     ]

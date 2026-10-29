@@ -20,7 +20,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const fixturesDir = path.join(root, 'fixtures');
 const avifDir = path.join(fixturesDir, 'avif');
-const tmpDir = path.join(fixturesDir, '.tmp');
+// Committed alongside the encoded fixtures: P4's e2e tests compare decoded
+// frames against these exact PNGs. They used to be regenerated at test time
+// with the same drawtext graph, which tied the "ground truth" to whichever
+// font the test machine had (Arial on Windows, DejaVu on Linux) — a Linux
+// runner was comparing Arial video frames against DejaVu references.
+const refDir = path.join(fixturesDir, 'proxy-ref');
 
 const FRAMES = 72;
 const SIZE = 256;
@@ -32,14 +37,33 @@ const FONT =
     ? 'C\\:/Windows/Fonts/arial.ttf'
     : '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
 
+// Same explicit colour metadata build-encode writes on every production
+// variant (packages/build-encode/src/color.ts, D-012): convert RGB -> YUV
+// with BT.709 and say so in the bitstream, so decoders don't guess. The
+// setparams stage is what actually carries primaries/transfer into the
+// encoders (see color.ts); the -color_* options alone leave them "unknown".
+const SCALE_COLOR =
+  'scale=out_color_matrix=bt709:out_range=tv,' +
+  'setparams=color_primaries=bt709:color_trc=iec61966-2-1:colorspace=bt709:range=tv';
+const COLOR_METADATA = [
+  '-colorspace',
+  'bt709',
+  '-color_primaries',
+  'bt709',
+  '-color_trc',
+  'iec61966-2-1',
+  '-color_range',
+  'tv',
+];
+
 async function run(args) {
   console.log('ffmpeg', args.join(' '));
   await execFileAsync('ffmpeg', args);
 }
 
 async function main() {
-  await rm(tmpDir, { recursive: true, force: true });
-  await mkdir(tmpDir, { recursive: true });
+  await rm(refDir, { recursive: true, force: true });
+  await mkdir(refDir, { recursive: true });
   await mkdir(avifDir, { recursive: true });
 
   const drawtext =
@@ -60,7 +84,7 @@ async function main() {
     String(FRAMES),
     '-start_number',
     '0',
-    path.join(tmpDir, '%03d.png'),
+    path.join(refDir, '%03d.png'),
   ]);
 
   // 2. AV1 MP4 — primary proxy fixture
@@ -71,7 +95,9 @@ async function main() {
     '-start_number',
     '0',
     '-i',
-    path.join(tmpDir, '%03d.png'),
+    path.join(refDir, '%03d.png'),
+    '-vf',
+    SCALE_COLOR,
     '-c:v',
     'libaom-av1',
     '-crf',
@@ -86,6 +112,7 @@ async function main() {
     String(GOP),
     '-pix_fmt',
     'yuv420p',
+    ...COLOR_METADATA,
     '-movflags',
     '+faststart',
     path.join(fixturesDir, 'proxy-fixture.av1.mp4'),
@@ -99,7 +126,9 @@ async function main() {
     '-start_number',
     '0',
     '-i',
-    path.join(tmpDir, '%03d.png'),
+    path.join(refDir, '%03d.png'),
+    '-vf',
+    SCALE_COLOR,
     '-c:v',
     'libvpx-vp9',
     '-crf',
@@ -110,31 +139,38 @@ async function main() {
     String(GOP),
     '-pix_fmt',
     'yuv420p',
+    ...COLOR_METADATA,
     '-movflags',
     '+faststart',
     path.join(fixturesDir, 'proxy-fixture.vp9.mp4'),
   ]);
 
   // 4. AVIF sequence — last-resort fallback fixture, one still per frame
-  const pngFiles = (await readdir(tmpDir)).filter((f) => f.endsWith('.png')).sort();
+  const pngFiles = (await readdir(refDir)).filter((f) => f.endsWith('.png')).sort();
   for (const file of pngFiles) {
     const index = path.basename(file, '.png');
     await run([
       '-y',
       '-i',
-      path.join(tmpDir, file),
+      path.join(refDir, file),
+      '-vf',
+      SCALE_COLOR,
       '-c:v',
       'libaom-av1',
       '-still-picture',
       '1',
       '-crf',
       '24',
+      '-pix_fmt',
+      'yuv420p',
+      ...COLOR_METADATA,
       path.join(avifDir, `${index}.avif`),
     ]);
   }
 
-  await rm(tmpDir, { recursive: true, force: true });
-  console.log(`Wrote ${FRAMES} frames -> AV1 mp4, VP9 mp4, ${pngFiles.length} AVIF stills.`);
+  console.log(
+    `Wrote ${FRAMES} reference PNGs -> fixtures/proxy-ref/, AV1 mp4, VP9 mp4, ${pngFiles.length} AVIF stills.`,
+  );
 }
 
 main().catch((error) => {

@@ -192,14 +192,13 @@ async function main() {
     // for a 24-frame fixture. Does not fully close the gap — see
     // docs/change-requests/P6-av1-color-metadata.md and
     // docs/reports/P6-report.md for the full measurement: crf 0 vs crf 4
-    // read identically, explicit `-color_primaries/-color_trc/-colorspace
-    // bt709 -color_range pc` on the encode (tried directly, outside
-    // encodeProxy, then reverted — no change) also read identically, and a
-    // direct ground-truth-PNG-vs-live-render comparison with no codec
-    // involved at all reads exactly 0.000% — so the remaining few percent
-    // is upstream of this package, in the AV1 encode/decode round trip
-    // itself, not anything plausibly fixable by this fixture's own
-    // settings.
+    // read identically, and a direct ground-truth-PNG-vs-live-render
+    // comparison with no codec involved at all reads exactly 0.000%.
+    // encodeProxy now tags every variant with explicit colour metadata
+    // (D-012, packages/build-encode/src/color.ts); that fixed the
+    // proxy-player canvas path (4% -> 1.3%) but this fixture's handoff
+    // diff stayed at 5.2%, so the viewer's residual sits in the
+    // VideoFrame -> overlay-texture path, not in the bitstream.
     quality: { av1Crf: 0, vp9Crf: 0, avifCrf: 0 },
   });
 

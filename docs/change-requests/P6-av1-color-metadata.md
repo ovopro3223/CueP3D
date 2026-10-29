@@ -1,5 +1,31 @@
 # P6 finding — AV1 proxy decode has a ~4-5% floor vs. ground truth, cause not fully isolated
 
+## Resolution (2026-10-29, D-012) — half of it was exactly the colour-metadata lead
+
+The first real CI run (Linux, Chromium with no GPU) made the same proxy-player decode tests that
+read ~4% here read ~8%, while the `<video>`-element path on the same machine passed — two decode
+paths on one machine disagreeing is the signature of a stream with no colour config. Measured
+directly with ffmpeg against the P4 fixture's ground-truth PNG: decoded with the matrix ffmpeg had
+silently used when encoding (BT.601, limited range) the frame reads **0.57%**; decoded assuming
+BT.709 it reads 3.2%; assuming full range, 5.7%. `build-encode` never wrote a colour config, so
+every decoder guessed, and each platform guessed differently.
+
+Fix: `build-encode` now converts RGB → YUV with BT.709 and stamps matrix, primaries (BT.709),
+transfer (sRGB) and range (limited) into every AV1, VP9 and AVIF variant
+(`packages/build-encode/src/color.ts`). Result on `proxy-player`'s canvas-path tests: **~4% → 1.24-1.34%**
+on the owner's machine. The lead above ("explicit colour metadata ... made no measurable difference")
+was right to be the most promising one; it did not pan out then because `-color_primaries` /
+`-color_trc` are ignored by ffmpeg 8's encoders unless the frames themselves carry them (`setparams`),
+and because this package's own number is dominated by something else:
+
+The viewer's handoff diff on the regenerated fixture is **5.197%** after the fix vs 5.203% before —
+unchanged. So the remaining ~5% in _this_ package is not the bitstream at all; it is in how the
+decoded `VideoFrame` reaches the overlay texture (VideoFrame → WebGL upload / texture colour
+handling in `@cuep3d/stage`). Tracked in `docs/roadmap.md`; `handoff-pixel-diff.spec.ts` keeps its 8%
+budget with this update noted in its own comment.
+
+---
+
 Status: **investigation report, not a proposed fix** — unlike this repo's other change-request
 notes, this one does not end in a one-line patch. Recorded here (not just in
 `docs/reports/P6-report.md`) because it affects `packages/build-encode` and/or

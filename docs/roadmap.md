@@ -18,6 +18,7 @@ Items deliberately out of scope for v1, collected from the design doc, decisions
 
 - **`<cuep3d-viewer>` has no `policy`/`debug` attribute path** — only `createViewer()`'s own JS options expose `QualityPolicy` overrides and the debug metrics hook (confirmed in P6's own report). `apps/demo`'s "Simulate low-end device" toggle is consequently a no-op against the real custom element; P7b worked around it at the page level (`bench-hook.ts`) rather than touching the frozen `packages/viewer`. Worth deciding whether the element should grow a settable `policy` property, or whether consumers who need overrides are expected to call `createViewer()` directly instead of using the element.
 - **Framework wrappers** (React/Vue/Svelte components around `<cuep3d-viewer>`) — v1 ships the raw custom element only.
+- **Overlay texture path still reads ~5.2% vs ground truth** — after D-012 tagged every proxy variant with explicit colour metadata, `proxy-player`'s canvas-path decode comparison dropped from ~4% to ~1.3%, but the viewer's handoff pixel-diff on its regenerated fixture stayed at 5.197%. The remaining gap is therefore in how the decoded `VideoFrame` reaches the overlay quad (`@cuep3d/stage`'s texture upload / texture colour-space handling), not in the bitstream. Isolating it would mean comparing a `VideoFrame` drawn to a 2D canvas against the same frame uploaded as a three.js texture and rendered through the overlay pass; closing it would let `handoff-pixel-diff.spec.ts`'s 8% budget return toward the original 2% goal (D-005d).
 
 ## Tooling
 

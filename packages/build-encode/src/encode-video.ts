@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { COLOR_METADATA_ARGS, SCALE_COLOR_OPTS, SETPARAMS_COLOR_FILTER } from './color.js';
 import { runFfmpeg } from './ffmpeg-process.js';
 import type { Av1EncoderChoice } from './types.js';
 
@@ -7,7 +8,10 @@ function inputArgs(framesDir: string, pattern: string, fps: number): string[] {
 }
 
 function scaleArgs(size: number): string[] {
-  return ['-vf', `scale=${size}:${size}:flags=lanczos`];
+  return [
+    '-vf',
+    `scale=${size}:${size}:flags=lanczos:${SCALE_COLOR_OPTS},${SETPARAMS_COLOR_FILTER}`,
+  ];
 }
 
 export interface EncodeAv1Options {
@@ -66,7 +70,7 @@ export async function encodeAv1(opts: EncodeAv1Options): Promise<void> {
     );
   }
 
-  args.push('-pix_fmt', 'yuv420p', '-movflags', '+faststart', opts.outFile);
+  args.push('-pix_fmt', 'yuv420p', ...COLOR_METADATA_ARGS, '-movflags', '+faststart', opts.outFile);
   await runFfmpeg(args);
 }
 
@@ -96,6 +100,7 @@ export async function encodeVp9(opts: EncodeVp9Options): Promise<void> {
     '1',
     '-pix_fmt',
     'yuv420p',
+    ...COLOR_METADATA_ARGS,
     '-movflags',
     '+faststart',
     opts.outFile,

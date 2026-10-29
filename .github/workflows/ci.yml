@@ -96,7 +96,9 @@ jobs:
         # software-rendered WebGL, and the hosted runner has two cores. The
         # root `test` script's default concurrency (4) made the timing-sensitive
         # viewer e2e tests flake even on a much faster local machine.
-        run: pnpm -r --workspace-concurrency=1 --if-present run test
+        # --no-bail: keep going past a failing package so one run reports
+        # every failure, instead of stopping at the first.
+        run: pnpm -r --workspace-concurrency=1 --no-bail --if-present run test
 
       - name: Build one sample via the CLI
         # No `--` separator: the cuep3d script forwards argv[0] straight to
