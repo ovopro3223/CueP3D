@@ -9,7 +9,7 @@ pnpm install
 pnpm run fetch-samples
 ```
 
-Prerequisites: Node 20+, pnpm, `ffmpeg`/`ffprobe` with `libaom-av1` (or SVT-AV1/NVENC), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software/releases).
+Prerequisites: Node 22.13+ (pnpm 11.x requires it), pnpm, `ffmpeg`/`ffprobe` with `libaom-av1` (or SVT-AV1/NVENC), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software/releases).
 
 ## Before sending a PR
 

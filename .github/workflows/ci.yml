@@ -30,7 +30,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # pnpm 11.x requires Node >=22.13 (uses node:sqlite internally) —
+          # bumped from 20 after the first real CI run failed with
+          # ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite.
+          node-version: 24
           cache: pnpm
 
       - name: Install dependencies

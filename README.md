@@ -46,7 +46,7 @@ The reasons, stated carefully:
 
 ## Quick start
 
-Not published to npm — clone and build it. Prerequisites (all free): Node 20+, pnpm, `ffmpeg`/`ffprobe` built with `libaom-av1` (SVT-AV1 or NVENC are used automatically when present), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software) for KTX2 textures.
+Not published to npm — clone and build it. Prerequisites (all free): Node 22.13+ (pnpm 11.x requires it), pnpm, `ffmpeg`/`ffprobe` built with `libaom-av1` (SVT-AV1 or NVENC are used automatically when present), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software) for KTX2 textures.
 
 ```bash
 git clone https://github.com/ovopro3223/CueP3D- && cd CueP3D-
