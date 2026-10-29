@@ -61,6 +61,13 @@ interface HarnessWindow {
       id: number,
       index: number,
     ): Promise<{ width: number; height: number; kind: string; elapsedMs: number }>;
+    frameSurvivesPrefetchRedecode(
+      id: number,
+      index: number,
+      prefetchCenter: number,
+      radius: number,
+      settleIndex: number,
+    ): Promise<{ kind: string; closed: boolean }>;
     compareFrameToReference(
       id: number,
       index: number,

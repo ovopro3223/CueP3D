@@ -1,9 +1,12 @@
 # CueP3D
 
 [![CI](https://github.com/ovopro3223/CueP3D-/actions/workflows/ci.yml/badge.svg)](https://github.com/ovopro3223/CueP3D-/actions/workflows/ci.yml)
+[![Live demo](https://img.shields.io/badge/live%20demo-GitHub%20Pages-2ea44f)](https://ovopro3223.github.io/CueP3D-/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **A 3D model on screen in a few hundred milliseconds — then a seamless handoff to the real thing.**
+
+**[Open the live demo](https://ovopro3223.github.io/CueP3D-/)** — plain three.js loading next to CueP3D, same model, same camera; pick a model, drag either one. For the slow-network numbers below, throttle it from DevTools (the page explains how).
 
 > Status: working end to end — build pipeline, viewer, demo and real benchmarks all real, all in this repo. Not published to npm yet; build it from source (Quick start below). See `docs/02-plan.md` for how it was built and `BENCHMARKS.md` for the numbers behind the claims below.
 

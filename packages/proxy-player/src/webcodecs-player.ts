@@ -1,6 +1,6 @@
 import type { FrameImage, ProxyPlayer } from './types.js';
 import { createLruCache, type LruCache } from './lru-cache.js';
-import { decodeRangeForFrame, keyframeAtOrBefore, ringWindow } from './gop.js';
+import { decodeRangeForFrame, ringWindow } from './gop.js';
 import { openMp4Source, type Mp4SourceInfo } from './mp4-source.js';
 import { isVideoDecoderConfigSupported } from './codec-support.js';
 
@@ -29,7 +29,6 @@ export function createWebCodecsProxyPlayer(
   let disposed = false;
   let decoder: VideoDecoder | undefined;
   let decodeQueueTail: Promise<void> = Promise.resolve();
-  let lastDecodedFrame = -1;
   const pendingTargets: number[] = [];
 
   let prefetchWindow = new Set<number>();
@@ -127,20 +126,29 @@ export function createWebCodecsProxyPlayer(
       frame.close();
       return;
     }
-    lastDecodedFrame = frameNumber;
     const keep = activeTargets.has(frameNumber) || prefetchWindow.has(frameNumber);
-    if (keep) {
-      cache.set(frameNumber, frame);
-    } else {
+    let stored = frame;
+    if (!keep) {
       // An intermediate frame decoded only to reach a later target in the
       // same GOP, and not currently of interest on its own — discard
       // rather than pollute the cache (brief: "close intermediate frames
       // unless they are within the prefetch window").
       frame.close();
+    } else {
+      const existing = cache.peek(frameNumber);
+      if (existing) {
+        // A redundant decode of a frame already cached (a GOP re-walk on the
+        // way to a later target). Keep the instance callers may already hold
+        // — cache.set() would close it under them — and drop the duplicate.
+        frame.close();
+        stored = existing;
+      } else {
+        cache.set(frameNumber, frame);
+      }
     }
     if (!firstFrameSettled && frameNumber === 0 && keep) {
       firstFrameSettled = true;
-      firstFrameResolve(frame);
+      firstFrameResolve(stored);
     }
   }
 
@@ -149,11 +157,12 @@ export function createWebCodecsProxyPlayer(
     if (alreadyCached) return alreadyCached;
     if (!sourceInfo || !decoder) throw new Error('Decoder not configured');
 
-    const sameGop =
-      lastDecodedFrame >= 0 &&
-      keyframeAtOrBefore(index, gop) === keyframeAtOrBefore(lastDecodedFrame, gop);
-    const canContinue = sameGop && index === lastDecodedFrame + 1;
-    const range = canContinue ? { from: index, to: index } : decodeRangeForFrame(index, gop);
+    // Always walk from the GOP's keyframe. Every batch ends with flush(),
+    // and WebCodecs requires a key chunk after flush() — a "continue with
+    // the next delta frame" shortcut threw DataError on exactly the
+    // sequential requests scrubbing produces, and the viewer swallowed the
+    // rejection (D-013). Continuing without a flush is a roadmap item.
+    const range = decodeRangeForFrame(index, gop);
 
     for (let i = range.from; i <= range.to; i++) {
       const data = await source.waitForFrameData(i);

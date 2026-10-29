@@ -92,7 +92,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test('the last proxy frame and the first live frame match within the AV1-noise-adjusted budget (8%, see docs/change-requests/P6-av1-color-metadata.md), with no long task >= 50ms across the handoff', async ({
+test('the last proxy frame and the first live frame match within 2% (§3), with no long task >= 50ms across the handoff', async ({
   page,
 }: {
   page: Page;
@@ -140,35 +140,30 @@ test('the last proxy frame and the first live frame match within the AV1-noise-a
 
   const diffPercent = meanAbsDiffPercent(lastProxyFrame, firstLiveFrame);
   console.log(`handoff mean abs diff: ${diffPercent.toFixed(3)}%`);
-  // Deviation from the brief's <2%, flagged loudly — see
-  // docs/change-requests/P6-av1-color-metadata.md and docs/reports/
-  // P6-report.md ("Handoff pixel-diff") for the full investigation. This
-  // number is stable at 5.203% across repeated runs on this fixture and
-  // machine, and is NOT a handoff-mechanism bug: the test right below this
-  // one proves the live render is pixel-identical (0.000%) to the exact
-  // ground-truth PNG the proxy frame was itself encoded from — i.e. the
-  // camera sync, state machine and crossfade this package owns are
-  // correct, and the entire remaining gap is the AV1 encode/decode round
-  // trip upstream of this package. Ruled out as the cause, each verified
-  // directly on this fixture: CRF (0 vs 4 read identically), explicit
-  // BT.709 colour metadata on the encode (read identically), and fixture
-  // content (text-on-cube → plain cube → plain sphere; saturated →
-  // neutral colour) only moved the number from ~7.5% to ~4.4-5.2%, never
-  // near 2%. 8% leaves headroom above the measured 5.2% (this exact test,
-  // with a genuine capture-timing bug found and fixed mid-investigation,
-  // read as high as 8.9%) while still catching a real regression — a
-  // wrong camera/azimuth or a stale decoded frame reads far higher still
-  // (double-exposure ghosting from one such bug, caught and fixed during
-  // this same investigation, read ~79%).
+  // The brief's original < 2% (§3). Measured 0.151% on this fixture after
+  // D-013; the codec round-trip of the same frame alone measures 0.283%
+  // with ffmpeg, so there is real headroom and no tuning in this number.
   //
-  // Update (D-012): explicit colour metadata in the bitstream took
-  // proxy-player's own canvas-path comparison from ~4% to ~1.3%, but left
-  // this number unchanged (5.197% after, 5.203% before, same fixture
-  // regenerated). So what remains here is not the bitstream: it is in how
-  // the decoded VideoFrame reaches the overlay texture (VideoFrame -> WebGL
-  // upload / texture colour handling in @cuep3d/stage), tracked in
-  // docs/roadmap.md.
-  expect(diffPercent).toBeLessThan(8);
+  // History, because this test read 5.2% for a long time and that number
+  // was documented as an "AV1 codec floor" (D-005d raised the budget to 8%
+  // on that basis): it was never the codec. A harness experiment captured
+  // the overlay at handoff and swept it against every decoded fixture
+  // frame — it matched frame 8 (0.253%), not frame 17, and Chromium had
+  // logged "texSubImage2D: can't texture a closed VideoFrame". The player
+  // closed the VideoFrame it had handed out when a prefetch re-decoded its
+  // GOP, before the next render uploaded it, so the overlay silently kept
+  // an older frame; and the player's delta-frame continuation threw
+  // DataError after flush(), swallowed by the viewer. See D-013,
+  // docs/reports/first-ci-run-report.md and
+  // docs/change-requests/P6-av1-color-metadata.md (resolution section).
+  // The test below this one (live render vs ground-truth PNG, no codec)
+  // still holds the sync-correctness bar at < 0.5%.
+  //
+  // What a real regression reads here, measured on this fixture: an
+  // adjacent frame (15°) 1.4%, three frames off 4.9%, nine frames off
+  // 5.2%, a wrong camera or stale decoded frame far higher (~79% for the
+  // double-exposure bug caught during P6).
+  expect(diffPercent).toBeLessThan(2);
 
   const log = await page.evaluate((id) => window.Harness.getFullLog(id), id);
   const stateTime = (state: string) =>

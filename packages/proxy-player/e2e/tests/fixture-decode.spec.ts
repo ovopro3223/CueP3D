@@ -102,6 +102,26 @@ test.describe('whole-file WebCodecs decode (milestone A)', () => {
   });
 });
 
+test.describe('frame lifetime (D-013)', () => {
+  test('a frame handed out by getFrame is not closed when a prefetch re-decodes its GOP', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const id = await createPlayer(page, FIXTURES.av1);
+    await harness(page).waitFirstFrame(id);
+
+    // getFrame(17) decodes 16..17. prefetch(18, 2) then asks for 16, 18, 19,
+    // 20: 18 is not a continuation of 16, so the player walks 16..18 again
+    // and decodes a second copy of 17 — which the prefetch window marks as
+    // worth keeping. Before D-013 that copy replaced the cached one and the
+    // LRU closed the original under whoever was holding it: the viewer's
+    // overlay texture, which then silently kept showing an older frame.
+    const result = await harness(page).frameSurvivesPrefetchRedecode(id, 17, 18, 2, 20);
+    expect(result.kind).toBe('VideoFrame');
+    expect(result.closed).toBe(false);
+  });
+});
+
 test.describe('VP9 variant via WebCodecs (D-004 fallback tier)', () => {
   test('decodes the VP9 fixture correctly, not just the AV1 one', async ({ page }) => {
     await page.goto('/');

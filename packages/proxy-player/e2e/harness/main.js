@@ -96,6 +96,20 @@ window.Harness = {
     return { ...size, kind: frameKind(frame), elapsedMs };
   },
 
+  // Holds the frame getFrame(index) returned while a prefetch window that
+  // contains `index` forces its GOP to be decoded again (the window makes
+  // the re-decoded copy "keep"-worthy), then reports whether the frame the
+  // caller is holding was closed under it. A closed VideoFrame has
+  // format === null.
+  async frameSurvivesPrefetchRedecode(id, index, prefetchCenter, radius, settleIndex) {
+    const player = getPlayer(id);
+    const frame = await player.getFrame(index);
+    player.prefetch(prefetchCenter, radius);
+    await player.getFrame(settleIndex); // queued behind the prefetch decodes
+    const isVideoFrame = typeof VideoFrame !== 'undefined' && frame instanceof VideoFrame;
+    return { kind: frameKind(frame), closed: isVideoFrame ? frame.format === null : false };
+  },
+
   async compareFrameToReference(id, index, referenceUrl, crop) {
     const player = getPlayer(id);
     const frame = await player.getFrame(index);

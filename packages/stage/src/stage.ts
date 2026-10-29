@@ -127,6 +127,13 @@ export function createStage(renderer: THREE.WebGLRenderer, params: StageParams):
       }
       overlayTexture.image = image as unknown as TexImageSource;
       overlayTexture.needsUpdate = true;
+      // Upload now, not at the next render. A WebCodecs VideoFrame belongs
+      // to the player and can be closed before the next animation frame
+      // (LRU eviction, or a GOP re-decode replacing the cached instance);
+      // texImage2D of a closed VideoFrame is a silent no-op that leaves the
+      // previous frame on screen. Measured: the overlay sat nine frames
+      // behind the scrub at handoff, read as a "5.2% codec floor" (D-013).
+      renderer.initTexture(overlayTexture);
       overlayQuad.visible = true;
     },
 

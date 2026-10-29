@@ -195,10 +195,10 @@ async function main() {
     // read identically, and a direct ground-truth-PNG-vs-live-render
     // comparison with no codec involved at all reads exactly 0.000%.
     // encodeProxy now tags every variant with explicit colour metadata
-    // (D-012, packages/build-encode/src/color.ts); that fixed the
-    // proxy-player canvas path (4% -> 1.3%) but this fixture's handoff
-    // diff stayed at 5.2%, so the viewer's residual sits in the
-    // VideoFrame -> overlay-texture path, not in the bitstream.
+    // (D-012); the codec round-trip of this fixture's frame 17 measures
+    // 0.283% with ffmpeg. The ~5% the handoff test used to read was the
+    // overlay showing a stale frame (D-013), not compression — it reads
+    // 0.151% now.
     quality: { av1Crf: 0, vp9Crf: 0, avifCrf: 0 },
   });
 

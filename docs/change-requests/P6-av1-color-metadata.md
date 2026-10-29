@@ -18,11 +18,16 @@ was right to be the most promising one; it did not pan out then because `-color_
 `-color_trc` are ignored by ffmpeg 8's encoders unless the frames themselves carry them (`setparams`),
 and because this package's own number is dominated by something else:
 
-The viewer's handoff diff on the regenerated fixture is **5.197%** after the fix vs 5.203% before —
-unchanged. So the remaining ~5% in _this_ package is not the bitstream at all; it is in how the
-decoded `VideoFrame` reaches the overlay texture (VideoFrame → WebGL upload / texture colour
-handling in `@cuep3d/stage`). Tracked in `docs/roadmap.md`; `handoff-pixel-diff.spec.ts` keeps its 8%
-budget with this update noted in its own comment.
+The viewer's handoff diff on the regenerated fixture was **5.197%** after that fix vs 5.203% before —
+unchanged — so the other half was not the bitstream. Isolated the same day with a harness experiment
+(D-013): the overlay at handoff was showing **frame 8** while the scrub had reached frame 17 (0.253%
+match to decoded frame 8, and Chromium logged `texSubImage2D: can't texture a closed VideoFrame`).
+The WebCodecs player closed the `VideoFrame` it had handed out when a GOP re-walk decoded the same
+frame again, before the next render had uploaded it; and its "continue with the next delta frame"
+shortcut had been throwing `DataError` (a key chunk is required after `flush()`) on sequential
+requests, silently swallowed by the viewer. With the overlay uploading immediately and the player
+keeping handed-out frames, the handoff diff reads **0.151%** — the original < 2% goal is met, and the
+8% budget is withdrawn.
 
 ---
 
