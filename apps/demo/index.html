@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Understudy — Plain vs Understudy demo</title>
+    <meta
+      name="description"
+      content="Side-by-side comparison of a naive three.js glTF load against Understudy's instant AV1 orbit-video stand-in with seamless handoff."
+    />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>Understudy demo</h1>
+      <p class="page-subtitle">
+        Plain three.js loading vs Understudy's instant proxy + progressive handoff, side by side.
+      </p>
+    </header>
+
+    <main>
+      <section class="controls" aria-label="Demo controls">
+        <div class="control-group">
+          <label for="model-picker">Model</label>
+          <select id="model-picker" aria-label="Choose a sample model">
+            <option value="avocado">Avocado</option>
+            <option value="boombox">BoomBox</option>
+            <option value="waterbottle">WaterBottle</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <button
+            id="reload-both"
+            type="button"
+            aria-label="Reload both panes, bypassing the HTTP cache"
+          >
+            Reload both
+          </button>
+        </div>
+
+        <div class="control-group control-group--toggle">
+          <input id="low-end-toggle" type="checkbox" aria-describedby="low-end-help" />
+          <label for="low-end-toggle">Simulate low-end device</label>
+        </div>
+
+        <p id="network-note" class="network-note">
+          Assets are served as-is; this page does not throttle your connection.
+        </p>
+      </section>
+
+      <details class="throttle-hint">
+        <summary>How to actually throttle the network</summary>
+        <p id="low-end-help">
+          A page cannot slow down its own network requests. To see Understudy's advantage on a slow
+          connection, open DevTools → Network panel → set throttling to
+          <strong>“Slow 3G”</strong> or <strong>“Fast 3G”</strong> before reloading. The “Simulate
+          low-end device” toggle above instead overrides the viewer's own device-tier policy
+          (CPU/GPU heuristics), independent of network speed.
+        </p>
+      </details>
+
+      <div class="panes">
+        <section class="pane" aria-label="Plain three.js loading">
+          <h2>Plain</h2>
+          <p class="pane-caption">
+            three.js <code>GLTFLoader</code>, original .glb, same stage and camera.
+          </p>
+          <div id="plain-viewport" class="viewport" aria-label="Plain pane 3D view"></div>
+          <dl id="plain-metrics" class="metrics-strip" aria-label="Plain pane metrics"></dl>
+        </section>
+
+        <section class="pane" aria-label="Understudy loading">
+          <h2>Understudy</h2>
+          <p class="pane-caption">
+            <code>&lt;understudy-viewer&gt;</code> — instant AV1 proxy, progressive glTF handoff.
+          </p>
+          <div id="understudy-viewport" class="viewport" aria-label="Understudy pane 3D view"></div>
+          <dl
+            id="understudy-metrics"
+            class="metrics-strip"
+            aria-label="Understudy pane metrics"
+          ></dl>
+        </section>
+      </div>
+
+      <p class="attribution" id="model-attribution"></p>
+    </main>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
