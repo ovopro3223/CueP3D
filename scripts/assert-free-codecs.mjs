@@ -6,9 +6,10 @@
  *      `av1`/`vp9` codec_names are allowed.
  *   2. grep the source tree for forbidden codec identifiers, so a stray
  *      legacy encoder flag in a script fails CI even before it produces a
- *      file. This file is excluded from its own scan (SOURCE_IGNORE_FILES)
- *      since naming those identifiers is its job; nowhere else should need
- *      to.
+ *      file. SOURCE_IGNORE_FILES excludes this file plus any package's own
+ *      codec-policy definition/test (they legitimately hold these
+ *      identifiers as data, to detect and reject them) — see
+ *      docs/change-requests/P3-codec-policy-source-scan-exclusion.md.
  * Exit 0 and prints nothing when clean; exit 1 with a readable report
  * otherwise.
  */
@@ -52,7 +53,11 @@ const SOURCE_SCAN_ROOTS = ['packages', 'apps', 'bench', 'scripts', '.github'];
 const SOURCE_IGNORE_DIRS = new Set(['node_modules', 'dist', 'coverage', '.turbo']);
 // This file names the forbidden identifiers in order to detect them; it is
 // the one file that legitimately needs to, so it does not scan itself.
-const SOURCE_IGNORE_FILES = new Set(['assert-free-codecs.mjs']);
+const SOURCE_IGNORE_FILES = new Set([
+  'assert-free-codecs.mjs',
+  'codec-policy.ts',
+  'codec-policy.test.ts',
+]);
 
 async function walk(dir, onFile) {
   let entries;
