@@ -1,6 +1,6 @@
 # BENCHMARKS
 
-Generated 2026-10-29T17:40:08.680Z — commit `79820a0` — Chromium 156.0.8078.4
+Generated 2026-10-29T17:40:08.680Z — commit `a001ee0` — Chromium 156.0.8078.4
 
 3 runs per cell, median reported (bench/src/median.ts). Goals (docs/01-design.md §3): CueP3D TTFV ≤ 500 ms and TTI ≤ 3000 ms on `3g-fast`, for every model.
 
