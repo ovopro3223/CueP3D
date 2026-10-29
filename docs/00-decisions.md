@@ -9,7 +9,7 @@ Rules out: anything that only works as a demo; anything tied to the owner's clie
 
 ## D-002 — Final name: CueP3D (2026-10-29)
 
-Working name was "Understudy" (same theatre metaphor: a stand-in performs until the lead is ready, then steps aside) through Wave 0–8. Finalized as **CueP3D** once the owner registered the GitHub repo (`ovopro3223/CueP3D-`) — "Cue" (the instant stand-in that cues up the real thing) + "P3D" (Progressive 3D, what it hands off to). npm scope `@cuep3d/*`. All source, docs and package names renamed accordingly; no behavior change.
+Working name was "Understudy" (same theatre metaphor: a stand-in performs until the lead is ready, then steps aside) through Wave 0–8. Finalized as **CueP3D** once the owner registered the GitHub repo (`ovopro3223/CueP3D`; first created as `CueP3D-`, renamed 2026-10-30 — GitHub redirects the repository URL but not the Pages URL, which moved from `/CueP3D-/` to `/CueP3D/`) — "Cue" (the instant stand-in that cues up the real thing) + "P3D" (Progressive 3D, what it hands off to). npm scope `@cuep3d/*`. All source, docs and package names renamed accordingly; no behavior change.
 
 ## D-003 — Scope v1: object-centric content (2026-10-29)
 
