@@ -2,19 +2,11 @@ import type { Viewer } from '@understudy3d/viewer';
 import { formatBytes, formatMs, renderMetricsStrip } from './metrics.js';
 
 /**
- * packages/viewer does not exist in this worktree yet (a separate agent owns
- * it in its own worktree — see docs/reports/P7a-report.md). This file is
- * coded exactly against the frozen docs/01-design.md §5.6 API so wiring it
- * up is a no-op once that package lands and `pnpm install` can resolve it.
- * Until then:
- *   - the `import type` above is erased by Vite/esbuild at build time (no
- *     runtime resolution needed for it), but tsc still resolves it at
- *     typecheck time and fails with TS2307 — expected, documented, not
- *     worked around with a fake shim.
- *   - the actual runtime `import('@understudy3d/viewer')` below is a
- *     genuine dynamic import, wrapped in try/catch so a missing package
- *     degrades this one pane instead of taking down the whole page (the
- *     Plain pane's module graph is untouched by this failure).
+ * `packages/viewer` is real now (landed and merged — see docs/reports/
+ * P6-report.md). This file is coded against the frozen docs/01-design.md
+ * §5.6 API; the dynamic import below stays wrapped in try/catch so the pane
+ * degrades gracefully if the package is ever missing or throws on load,
+ * rather than taking down the whole page.
  */
 
 export interface UnderstudyPaneOptions {
@@ -76,12 +68,10 @@ export async function mountUnderstudyPane(
   }
 
   try {
-    // Non-literal specifier + @vite-ignore: a literal `import('@understudy3d/viewer')`
-    // makes Vite's import-analysis plugin eagerly resolve-check it even
-    // inside try/catch, which errors the whole dev session instead of just
-    // this pane. See docs/reports/P7a-report.md.
-    const viewerSpecifier = '@understudy3d/viewer';
-    await import(/* @vite-ignore */ viewerSpecifier);
+    // A literal specifier (not @vite-ignore'd) so Vite resolves and bundles
+    // it normally, both in dev and in the production build — the same way
+    // any other real dependency is imported.
+    await import('@understudy3d/viewer');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     showBlocked(message);

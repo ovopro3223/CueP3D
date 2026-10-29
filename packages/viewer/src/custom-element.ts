@@ -1,20 +1,40 @@
 import { createViewer } from './create-viewer.js';
-import type { Viewer } from './types.js';
+import type { Viewer, ViewerMetrics, ViewerState } from './types.js';
 
 const TAG_NAME = 'understudy-viewer';
 
+const IDLE_METRICS: ViewerMetrics = { bytesBeforeFirstVisual: 0, bytesTotal: 0 };
+
+const FORWARDED_EVENTS = ['statechange', 'metrics', 'error'] as const;
+
 /**
  * `<understudy-viewer src="…" background="#fff"></understudy-viewer>` —
- * the thin wrapper around `createViewer` (§5.6). Options beyond `src`/
- * `background` (policy overrides, `debug`) are not expressible as HTML
- * attributes and stay the JS API's job; the element is a convenience for
- * the common case, not a full re-exposure of `createViewer`'s options.
+ * wraps `createViewer` (§5.6: "the element is assumed to implement the
+ * Viewer interface directly"). `state`/`degraded`/`metrics` delegate to the
+ * internal `createViewer()` instance, and its events are re-dispatched on
+ * this element — `createViewer`'s `ViewerImpl` dispatches on itself (a
+ * separate `EventTarget`), not on the container element it renders into, so
+ * without this forwarding a consumer's `el.addEventListener('statechange',
+ * …)` would never fire and `el.metrics`/`el.state` would always read as
+ * whatever the pre-mount default is.
  */
-export class UnderstudyViewerElement extends HTMLElement {
-  private viewer: Viewer | null = null;
+export class UnderstudyViewerElement extends HTMLElement implements Viewer {
+  private viewerImpl: Viewer | null = null;
 
   static get observedAttributes(): string[] {
     return ['src'];
+  }
+
+  get state(): ViewerState {
+    return this.viewerImpl?.state ?? 'idle';
+  }
+
+  get degraded(): boolean {
+    return this.viewerImpl?.degraded ?? false;
+  }
+
+  get metrics(): ViewerMetrics {
+    return this.viewerImpl?.metrics ?? IDLE_METRICS;
   }
 
   connectedCallback(): void {
@@ -32,16 +52,28 @@ export class UnderstudyViewerElement extends HTMLElement {
     }
   }
 
+  dispose(): void {
+    this.unmount();
+  }
+
   private mount(): void {
     const src = this.getAttribute('src');
     if (!src) return;
     const background = this.getAttribute('background') ?? undefined;
-    this.viewer = createViewer(this, { src, background });
+    const viewer = createViewer(this, { src, background });
+    this.viewerImpl = viewer;
+    for (const type of FORWARDED_EVENTS) {
+      viewer.addEventListener(type, (event) => {
+        if (this.viewerImpl !== viewer) return; // stale listener from a since-unmounted instance
+        const detail = (event as CustomEvent).detail as unknown;
+        this.dispatchEvent(new CustomEvent(type, { detail }));
+      });
+    }
   }
 
   private unmount(): void {
-    this.viewer?.dispose();
-    this.viewer = null;
+    this.viewerImpl?.dispose();
+    this.viewerImpl = null;
   }
 }
 

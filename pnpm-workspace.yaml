@@ -5,10 +5,3 @@ packages:
 allowBuilds:
   esbuild: true
   puppeteer: true
-# apps/demo/package.json declares "@understudy3d/viewer": "workspace:*"
-# ahead of packages/viewer landing (see docs/reports/P7a-report.md). pnpm's
-# default verify-deps-before-run ("install") makes any `pnpm run <script>`,
-# in any package, auto-run `pnpm install` first — which fails hard on that
-# unresolvable workspace ref and blocks every package's scripts, not just
-# apps/demo's. Safe to remove once packages/viewer exists.
-verifyDepsBeforeRun: false

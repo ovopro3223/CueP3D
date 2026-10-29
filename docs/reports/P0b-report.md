@@ -11,7 +11,7 @@ Output layout: P1 and P3 write directly into `outDir` (tier `.glb`s, proxy video
 ## Also fixed along the way
 
 - **Installed `toktx` (KTX-Software 4.4.2) on this machine**, with the owner's explicit go-ahead (asked first, per the file-download policy) — real verification of P1's KTX2 path was otherwise impossible. Added to the user's persistent PATH; this session's already-open shells needed a one-off `PATH=...:/c/Program Files/KTX-Software/bin` prefix per command (new shells pick it up automatically). As a side effect, `build-geometry`'s test suite went from 12 passed/9 skipped to **21 passed/0 skipped** — every toktx-gated assertion now actually runs.
-- **CI ordering bug**: `.github/workflows/ci.yml` ran tests *before* `fetch-samples`, so any sample-dependent test (several of `build-geometry`'s) would have failed the first time this ever ran in CI. Reordered: fetch samples first.
+- **CI ordering bug**: `.github/workflows/ci.yml` ran tests _before_ `fetch-samples`, so any sample-dependent test (several of `build-geometry`'s) would have failed the first time this ever ran in CI. Reordered: fetch samples first.
 
 ## Verified — a real, complete, end-to-end build
 

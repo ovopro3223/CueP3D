@@ -11,6 +11,7 @@ import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const demoDir = path.join(__dirname, '..');
@@ -18,6 +19,17 @@ const repoRoot = path.join(demoDir, '..', '..');
 const cliBin = path.join(repoRoot, 'packages', 'cli', 'dist', 'bin.js');
 const samplesDir = path.join(repoRoot, 'samples');
 const outDir = path.join(demoDir, 'public', 'models');
+
+// progressive-loader's KTX2 transcoder path is resolved per-manifest, relative
+// to that model's own understudy.json (DEFAULT_KTX2_TRANSCODER_PATH = './basis/'
+// in packages/progressive-loader/src/loader.ts) — each model needs its own copy.
+// Without this, those requests 404 and Vite's dev-server SPA fallback serves
+// index.html for them with a 200 status, which hangs KTX2 transcoding forever
+// instead of failing loudly (verified directly: 'warming' never advances).
+const require = createRequire(import.meta.url);
+const basisSrcDir = path.dirname(
+  require.resolve('three/examples/jsm/libs/basis/basis_transcoder.js'),
+);
 
 const MODELS = [
   { slug: 'avocado', file: 'Avocado.glb' },
@@ -66,6 +78,13 @@ function main() {
     console.log(
       `[demo:assets] wrote ${path.join(modelOutDir, 'original.glb')} (Plain pane source)`,
     );
+
+    const basisOutDir = path.join(modelOutDir, 'basis');
+    mkdirSync(basisOutDir, { recursive: true });
+    for (const file of ['basis_transcoder.js', 'basis_transcoder.wasm']) {
+      copyFileSync(path.join(basisSrcDir, file), path.join(basisOutDir, file));
+    }
+    console.log(`[demo:assets] copied KTX2 transcoder to ${basisOutDir}`);
   }
 
   console.log('\n[demo:assets] done.');
