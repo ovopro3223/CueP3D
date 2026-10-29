@@ -39,6 +39,12 @@ Also fixes a real Wave-0 gap P1 surfaced: this Windows checkout has `core.autocr
 Why: so this doesn't get re-flagged or worked around differently by every subsequent agent.
 Rules out: any agent treating a transitive LGPL native dependency as a blocker, or hand-rolling a per-package CRLF workaround.
 
+## D-005c — ProxyVariant carries a `frames` count (2026-10-29)
+
+Amends §5.2 (frozen after Wave 0, reopened here between Wave 1 and Wave 2 per the agent protocol's own escape hatch): added `frames: number` to `ProxyVariant`. Raised by P4 (proxy-player) as `docs/change-requests/P4-proxyvariant-frame-count.md`, now applied and the change-request file removed — a video variant self-describes its frame count via the MP4 sample table, but a bare AVIF image-sequence variant has no container to read it from, so without this field `proxy-player`'s AVIF fallback needed an O(log n) HEAD-request probe on every page load just to learn something P3 already knows at build time. `build-encode` now sets it on every variant it produces (same `sequence.count` for all three); `proxy-player`'s AVIF player reads it directly and the probe code is gone.
+Why: the probe was a real per-visitor network/latency cost on the project's own worst-case fallback path, which cuts against D-001's actual goal (fast first paint) for exactly the users who most need the fallback to be fast (no AV1/VP9 hardware decode).
+Rules out: any future AVIF/image-sequence-style proxy variant needing its own frame-count discovery; it must always be read from this field.
+
 ## D-006 — Monorepo, one package per pipeline (2026-10-29)
 
 pnpm workspaces. Each build step and each client module is its own package with a documented interface, so one agent can own one package without touching another's files. Shared contracts (`packages/manifest`, `packages/stage`) are frozen after Wave 0; changes go through a change-request note, not a direct edit.

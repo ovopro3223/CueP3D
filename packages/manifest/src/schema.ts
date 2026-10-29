@@ -25,6 +25,14 @@ export const ProxyVariantSchema = z.object({
   height: z.number().int().positive(),
   bytes: z.number().int().nonnegative(),
   gop: z.number().int().positive().optional(),
+  /**
+   * Frame count, same for every variant of one proxy (redundant with
+   * Manifest.proxy.frames, convenient per-variant like `gop`). A video
+   * variant self-describes this via its MP4 sample table; an image-sequence
+   * variant has no container to read it from, so it's carried here instead
+   * of requiring a discovery probe. See D-005c.
+   */
+  frames: z.number().int().positive(),
 });
 
 export const TierSchema = z.object({

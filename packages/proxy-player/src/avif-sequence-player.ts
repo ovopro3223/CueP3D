@@ -15,42 +15,6 @@ function frameUrl(baseUrl: string, pattern: string, index: number): string {
   return resolveUrl(baseUrl, relative);
 }
 
-async function frameExists(baseUrl: string, pattern: string, index: number): Promise<boolean> {
-  try {
-    const response = await fetch(frameUrl(baseUrl, pattern, index), { method: 'HEAD' });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Discovers the sequence length in O(log n) requests: double the probe
- * index until one is missing, then binary-search the exact boundary
- * (~7-8 requests for a 72-frame sequence). The frozen ProxyVariant/
- * createProxyPlayer contract carries no frame count (see
- * docs/change-requests/P4-proxyvariant-frame-count.md) — a video variant
- * self-describes via its MP4 sample table, but a bare AVIF sequence has no
- * equivalent, so this is the local workaround for that gap.
- */
-async function discoverFrameCount(baseUrl: string, pattern: string): Promise<number> {
-  if (!(await frameExists(baseUrl, pattern, 0))) {
-    throw new Error(`AVIF sequence has no frame 0: ${frameUrl(baseUrl, pattern, 0)}`);
-  }
-  let low = 0;
-  let high = 1;
-  while (await frameExists(baseUrl, pattern, high)) {
-    low = high;
-    high *= 2;
-  }
-  while (high - low > 1) {
-    const mid = Math.floor((low + high) / 2);
-    if (await frameExists(baseUrl, pattern, mid)) low = mid;
-    else high = mid;
-  }
-  return low + 1;
-}
-
 /**
  * Milestone D: last-resort fallback, one AVIF still per frame. No GOP
  * structure — any index is independently fetchable — so `available` is the
@@ -68,9 +32,9 @@ export function createAvifSequenceProxyPlayer(
     );
   }
   const cacheBudget = options.cacheBudget ?? DEFAULT_CACHE_BUDGET;
+  const totalFrames = variant.frames;
 
   let disposed = false;
-  let totalFrames = 0;
   let bytesLoaded = 0;
   let prefetchWindow = new Set<number>();
   const activeTargets = new Set<number>();
@@ -82,7 +46,10 @@ export function createAvifSequenceProxyPlayer(
     (key) => prefetchWindow.has(key) || activeTargets.has(key),
   );
 
-  let availableTo = -1;
+  // Unlike the video players, the frame count is known synchronously (it's
+  // on the variant), so the full range is available immediately — no GOP
+  // structure means any index is independently fetchable from the start.
+  const availableTo = totalFrames - 1;
   const availableChangeListeners = new Set<() => void>();
 
   let firstFrameSettled = false;
@@ -110,8 +77,6 @@ export function createAvifSequenceProxyPlayer(
   }
 
   async function getFrame(index: number): Promise<FrameImage> {
-    if (disposed) throw new Error('ProxyPlayer disposed');
-    if (totalFrames === 0) await ready;
     if (disposed) throw new Error('ProxyPlayer disposed');
     if (!Number.isInteger(index) || index < 0 || index >= totalFrames) {
       throw new Error(`Frame index ${index} out of range [0, ${totalFrames})`);
@@ -146,7 +111,7 @@ export function createAvifSequenceProxyPlayer(
   }
 
   function prefetch(centerIndex: number, radius: number): void {
-    if (disposed || totalFrames === 0) return;
+    if (disposed) return;
     if (!Number.isInteger(centerIndex) || centerIndex < 0 || centerIndex >= totalFrames) return;
     const window = ringWindow(centerIndex, radius, totalFrames);
     prefetchWindow = new Set(window);
@@ -171,16 +136,7 @@ export function createAvifSequenceProxyPlayer(
     failFirstFrame(new Error('ProxyPlayer disposed'));
   }
 
-  const ready: Promise<number> = discoverFrameCount(baseUrl, variant.url).then((count) => {
-    totalFrames = count;
-    availableTo = totalFrames - 1;
-    for (const cb of availableChangeListeners) cb();
-    void getFrame(0).catch(() => {
-      /* failures surface through firstFrame's own rejection */
-    });
-    return count;
-  });
-  ready.catch((error: Error) => failFirstFrame(error));
+  void getFrame(0).catch((error: Error) => failFirstFrame(error));
 
   return {
     firstFrame,

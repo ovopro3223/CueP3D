@@ -32,6 +32,7 @@ function validFixture(): Manifest {
           height: 1024,
           bytes: 123_456,
           gop: 8,
+          frames: 72,
         },
       ],
     },

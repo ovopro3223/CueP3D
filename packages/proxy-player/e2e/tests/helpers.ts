@@ -55,6 +55,7 @@ export const FIXTURES = {
     height: 256,
     bytes: 121874,
     gop: 8,
+    frames: 72,
   },
   vp9: {
     kind: 'video' as const,
@@ -65,6 +66,7 @@ export const FIXTURES = {
     height: 256,
     bytes: 175690,
     gop: 8,
+    frames: 72,
   },
   avif: {
     kind: 'image-sequence' as const,
@@ -73,6 +75,7 @@ export const FIXTURES = {
     width: 256,
     height: 256,
     bytes: 502091,
+    frames: 72,
   },
 };
 

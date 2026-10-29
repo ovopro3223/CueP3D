@@ -59,6 +59,7 @@ export async function encodeProxy(opts: EncodeProxyOptions): Promise<ProxyVarian
       height: size,
       bytes: (await stat(outFile)).size,
       gop: opts.gop,
+      frames: sequence.count,
     });
   }
 
@@ -89,6 +90,7 @@ export async function encodeProxy(opts: EncodeProxyOptions): Promise<ProxyVarian
       height: minSize,
       bytes: (await stat(outFile)).size,
       gop: opts.gop,
+      frames: sequence.count,
     });
   }
 
@@ -128,6 +130,7 @@ export async function encodeProxy(opts: EncodeProxyOptions): Promise<ProxyVarian
       width: minSize,
       height: minSize,
       bytes: totalBytes,
+      frames: sequence.count,
     });
   }
 

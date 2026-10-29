@@ -119,6 +119,7 @@ interface ProxyVariant {
   height: number;
   bytes: number; // total bytes (sum for sequences)
   gop?: number; // keyframe interval, video only (8)
+  frames: number; // same value as proxy.frames, carried per-variant (see D-005c)
 }
 interface Tier {
   id: 'L0' | 'L1' | 'L2';
