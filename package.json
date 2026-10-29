@@ -17,6 +17,7 @@
     "test": "pnpm run build && pnpm -r --if-present run test",
     "understudy": "node packages/cli/dist/bin.js",
     "fetch-samples": "node scripts/fetch-samples.mjs",
+    "demo:assets": "pnpm --filter @understudy3d/demo run build:assets",
     "make-fixtures": "node scripts/make-fixtures.mjs",
     "assert-free-codecs": "node scripts/assert-free-codecs.mjs"
   },
