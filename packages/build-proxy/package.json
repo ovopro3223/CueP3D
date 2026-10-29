@@ -1,0 +1,36 @@
+{
+  "name": "@understudy3d/build-proxy",
+  "version": "0.1.0",
+  "description": "Renders orbit-video source frames for a model in headless Chromium using @understudy3d/stage, so build-time frames match the live viewer pixel-for-pixel.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p page/tsconfig.json && node scripts/build-page.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p page/tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@understudy3d/manifest": "workspace:*",
+    "@understudy3d/stage": "workspace:*",
+    "puppeteer": "^23.11.1",
+    "three": "^0.171.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/three": "^0.186.0",
+    "esbuild": "^0.21.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
