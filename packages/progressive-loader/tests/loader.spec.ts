@@ -70,7 +70,10 @@ test('warm() resolves and makes the first on-screen render faster than an un-war
   expect(coldMs).toBeGreaterThan(warmedMs * 1.5);
 });
 
-test('disposeObject returns renderer.info.memory to its pre-load baseline', async ({ page, baseURL }) => {
+test('disposeObject returns renderer.info.memory to its pre-load baseline', async ({
+  page,
+  baseURL,
+}) => {
   await page.goto('/');
   const tier = await makeTier();
   const baseUrl = `${baseURL}fixtures/`;

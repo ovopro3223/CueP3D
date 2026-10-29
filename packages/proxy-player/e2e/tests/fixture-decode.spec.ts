@@ -27,9 +27,7 @@ test.describe('whole-file WebCodecs decode (milestone A)', () => {
     await page.goto('/');
     const id = await createPlayer(page, FIXTURES.av1);
     await harness(page).waitFirstFrame(id);
-    await expect
-      .poll(async () => harness(page).getAvailable(id))
-      .toEqual({ from: 0, to: 71 });
+    await expect.poll(async () => harness(page).getAvailable(id)).toEqual({ from: 0, to: 71 });
   });
 
   for (const index of [0, 17, 71]) {
@@ -67,7 +65,11 @@ test.describe('whole-file WebCodecs decode (milestone A)', () => {
     await harness(page).waitFirstFrame(id);
 
     const ref13 = await generateReferenceFrame(13);
-    const result = await harness(page).compareFrameToReference(id, 13, `http://localhost:4873/${ref13}`);
+    const result = await harness(page).compareFrameToReference(
+      id,
+      13,
+      `http://localhost:4873/${ref13}`,
+    );
     expect(result.meanAbsDiffPct).toBeLessThan(6);
   });
 
@@ -80,7 +82,11 @@ test.describe('whole-file WebCodecs decode (milestone A)', () => {
     // previous one, exercising both the incremental and random-access paths.
     for (const index of [7, 8, 6]) {
       const ref = await generateReferenceFrame(index);
-      const result = await harness(page).compareFrameToReference(id, index, `http://localhost:4873/${ref}`);
+      const result = await harness(page).compareFrameToReference(
+        id,
+        index,
+        `http://localhost:4873/${ref}`,
+      );
       expect(result.meanAbsDiffPct).toBeLessThan(6);
     }
   });
@@ -94,7 +100,11 @@ test.describe('VP9 variant via WebCodecs (D-004 fallback tier)', () => {
     expect(first.kind).toBe('VideoFrame');
 
     const ref17 = await generateReferenceFrame(17);
-    const result = await harness(page).compareFrameToReference(id, 17, `http://localhost:4873/${ref17}`);
+    const result = await harness(page).compareFrameToReference(
+      id,
+      17,
+      `http://localhost:4873/${ref17}`,
+    );
     expect(result.meanAbsDiffPct).toBeLessThan(6);
   });
 });

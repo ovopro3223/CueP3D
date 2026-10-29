@@ -16,7 +16,7 @@ and exact frame count before returning.
   packet-counting fallback when `nb_frames` is absent, plus a keyframe-index helper tests use).
 - `src/select-encoder.ts` — `selectAv1Encoder('auto'|'libaom'|'svt-av1'|'nvenc', smokeSize)`.
   `'auto'` tries svt-av1 → nvenc → libaom in order, skipping any encoder missing from `ffmpeg
-  -encoders` *and* any that fails a real smoke-test encode at the requested size (not just a name
+-encoders` _and_ any that fails a real smoke-test encode at the requested size (not just a name
   check — `av1_nvenc` is compiled into this ffmpeg build regardless of whether the host has an
   NVIDIA GPU, and it separately rejects frame sizes below ~192px). An explicit non-auto
   preference that isn't available throws rather than silently substituting another encoder.
@@ -53,21 +53,21 @@ their own worktrees). Per the brief's own fallback, these numbers are from the g
 `testsrc2`+`drawtext` fixture, not Avocado/BoomBox/WaterBottle. Re-measuring against real P2
 output is an open question below.
 
-| Variant         | libaom (crf 30/33/28) | nvenc (cq 30, VP9/AVIF unaffected) | Budget   |
-| --------------- | ---------------------- | ----------------------------------- | -------- |
-| AV1 1024        | 751.5 KB               | 1411.2 KB                           | ≤1.6 MB  |
-| AV1 512         | 169.4 KB               | 332.1 KB                            | ≤600 KB  |
-| VP9 512         | 248.1 KB               | 248.1 KB                            | ≤900 KB  |
-| AVIF seq (72×512) | 803.7 KB             | 803.7 KB                            | ≤1.2 MB  |
+| Variant           | libaom (crf 30/33/28) | nvenc (cq 30, VP9/AVIF unaffected) | Budget  |
+| ----------------- | --------------------- | ---------------------------------- | ------- |
+| AV1 1024          | 751.5 KB              | 1411.2 KB                          | ≤1.6 MB |
+| AV1 512           | 169.4 KB              | 332.1 KB                           | ≤600 KB |
+| VP9 512           | 248.1 KB              | 248.1 KB                           | ≤900 KB |
+| AVIF seq (72×512) | 803.7 KB              | 803.7 KB                           | ≤1.2 MB |
 
 Encode time, full pipeline (AV1×2 sizes + VP9 + 72 AVIF stills, concurrency = 24 cores):
 
-| Encoder   | Available on this machine | Time      |
-| --------- | -------------------------- | --------- |
-| libaom    | yes                         | ~15.0 s   |
-| nvenc     | yes (NVIDIA GPU present)    | ~7.3 s    |
-| svt-av1   | **no** (`libsvtav1` not compiled into this ffmpeg build) | fails in 38 ms with a clear "unavailable" error, not a crash |
-| auto      | → resolves to nvenc here    | ~7.3 s    |
+| Encoder | Available on this machine                                | Time                                                         |
+| ------- | -------------------------------------------------------- | ------------------------------------------------------------ |
+| libaom  | yes                                                      | ~15.0 s                                                      |
+| nvenc   | yes (NVIDIA GPU present)                                 | ~7.3 s                                                       |
+| svt-av1 | **no** (`libsvtav1` not compiled into this ffmpeg build) | fails in 38 ms with a clear "unavailable" error, not a crash |
+| auto    | → resolves to nvenc here                                 | ~7.3 s                                                       |
 
 All four size budgets are met by both working encoders, but with real margin only for libaom;
 nvenc's AV1 at `cq 30` runs ~1.9× larger than libaom's at `crf 30` for the same nominal quality

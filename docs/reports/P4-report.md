@@ -18,7 +18,7 @@ decoding where the browser offers it and two royalty-free fallbacks everywhere e
 - **Milestones A+B — WebCodecs (`webcodecs-player.ts` + `mp4-source.ts`).** One
   implementation serves both: streaming is the general case, "whole-file" is simply
   the case where every byte has already arrived by the time something is requested.
-  `mp4-source.ts` streams the MP4 through mp4box.js; sample *metadata* (every frame's
+  `mp4-source.ts` streams the MP4 through mp4box.js; sample _metadata_ (every frame's
   offset/size/sync flag/timing) is read from `moov` the instant it parses — ISOBMFF's
   sample tables describe the whole file regardless of how much of `mdat` has
   downloaded — so the exact GOP and frame count are known immediately, before any
@@ -61,12 +61,12 @@ decoding where the browser offers it and two royalty-free fallbacks everywhere e
   frame N and compares it (RGB channels, OffscreenCanvas `getImageData`) against a
   freshly ffmpeg-regenerated ground truth for that exact index (same `testsrc2` +
   `drawtext` graph `scripts/make-fixtures.mjs` used), then separately compares the same
-  decoded frame against a reference from the *opposite side of the 72-frame orbit*.
+  decoded frame against a reference from the _opposite side of the 72-frame orbit_.
   Measured on this fixture: a correct decode sits around 4% mean abs diff (AV1
   compression noise against the regenerated source, not an error); a wrong-index
   comparison reads 10%+. That gap, not an arbitrary absolute number, is the actual
   proof. (An adjacent-frame comparison was tried first and discarded — `testsrc2`
-  moves continuously, so frame *i* and *i+1* are too similar to each other for an
+  moves continuously, so frame _i_ and _i+1_ are too similar to each other for an
   off-by-one bug to show up reliably; comparing against the far side of the ring does.)
 - Browsers exercised: Chromium only (Playwright's bundled build), per the brief's test
   list. Not checked in Firefox/Safari.
@@ -78,7 +78,7 @@ decoding where the browser offers it and two royalty-free fallbacks everywhere e
   — comfortably inside the brief's "< 25% of bytesTotal" bound and the design's 500ms
   TTFV goal, for a tiny proxy; real-world proxies and RTT will differ.
 - **Cache hit rate across a simulated full 360° scrub** (72 frames, `prefetch(center,
-  3)` called after every `getFrame`, no delay between steps): **54.2% (39/72)**.
+3)` called after every `getFrame`, no delay between steps): **54.2% (39/72)**.
   Reported as measured rather than tuned to look better: back-to-back synchronous
   stepping doesn't give an async prefetch decode time to finish before the very next
   frame demands it; a real pointer-drag has natural per-frame gaps that would let more
@@ -91,7 +91,7 @@ decoding where the browser offers it and two royalty-free fallbacks everywhere e
 - `selectProxyVariant` uses the brief's default level strings (`av01.0.08M.08` /
   `vp09.00.31.08`) exclusively, never the exact per-file profile/level — it has no
   `baseUrl` to fetch the real container with (single-argument, per §5.4). `createProxyPlayer`,
-  which does have `baseUrl`, resolves the *exact* codec string from the real file's
+  which does have `baseUrl`, resolves the _exact_ codec string from the real file's
   `av1C`/`vpcC` box before configuring `VideoDecoder`. In the normal flow these two run
   together, so the common case already gets the precise check; the brief explicitly
   allows the default-string path, this just doesn't use it in the one place it can
@@ -132,10 +132,10 @@ decoding where the browser offers it and two royalty-free fallbacks everywhere e
    browser before trusting the Playwright suite to catch it; fixed in both this way,
    and added the same auto-prime to the AVIF player from the start.
 2. AVIF per-frame URLs: resolving the `{i}` template through `resolveUrl`/`new URL()`
-   *before* substituting the index percent-encodes `{`/`}` to `%7B`/`%7D`, silently
+   _before_ substituting the index percent-encodes `{`/`}` to `%7B`/`%7D`, silently
    breaking every frame fetch. Fixed by substituting first, resolving second.
 3. `LruCache.set()` silently dropped (leaked) the previous value when a key was
-   overwritten with a *different* value, never calling the eviction/close callback on
+   overwritten with a _different_ value, never calling the eviction/close callback on
    it — a real resource leak path for concurrent fetches landing the same frame index.
    Fixed in the shared primitive with a dedicated test.
 4. My own defensive codec-string check spelled out `hvc1` as a literal substring to

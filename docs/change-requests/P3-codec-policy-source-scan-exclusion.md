@@ -38,7 +38,7 @@ const SOURCE_IGNORE_FILES = new Set([
 
 ## Why
 
-Both files hold the forbidden identifiers as *data* (to detect/reject them), not as ffmpeg flags
+Both files hold the forbidden identifiers as _data_ (to detect/reject them), not as ffmpeg flags
 — the exact same situation the script already carves out an exception for itself over. Matching
 on bare filename (not full path) is consistent with the script's existing style and is safe here:
 no other package has or should have files with these two names.
@@ -54,7 +54,7 @@ does not need to wait for a wave boundary since it only widens an exclusion list
 
 None needed for P3 itself — `pnpm -F @understudy3d/build-encode run test` passes cleanly, because
 the package's own test (`codec-policy.test.ts`'s "source scan" describe block) already excludes
-these same two filenames when scanning *its own* package directory, so P3's own test suite is
+these same two filenames when scanning _its own_ package directory, so P3's own test suite is
 green. Only the **root** script (or whoever wires it into CI for real, per D-011 / the Wave 3 P8
 agent) needs this one-line change before `pnpm run assert-free-codecs` is run against `packages`
 in anger.

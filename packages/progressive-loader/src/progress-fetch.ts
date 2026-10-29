@@ -11,7 +11,9 @@ export async function fetchWithProgress(
 ): Promise<ArrayBuffer> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`fetchWithProgress: ${String(response.status)} ${response.statusText} for ${url}`);
+    throw new Error(
+      `fetchWithProgress: ${String(response.status)} ${response.statusText} for ${url}`,
+    );
   }
 
   const body = response.body;

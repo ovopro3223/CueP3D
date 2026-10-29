@@ -19,7 +19,9 @@ test.describe('<video> element fallback (milestone C)', () => {
     await disableVideoDecoder(page);
   });
 
-  test('createProxyPlayer falls back to <video> when VideoDecoder is unavailable', async ({ page }) => {
+  test('createProxyPlayer falls back to <video> when VideoDecoder is unavailable', async ({
+    page,
+  }) => {
     await page.goto('/');
     const hasVideoDecoder = await page.evaluate(() => typeof window.VideoDecoder !== 'undefined');
     expect(hasVideoDecoder).toBe(false);
@@ -41,7 +43,11 @@ test.describe('<video> element fallback (milestone C)', () => {
     expect(result.elapsedMs).toBeLessThan(300);
 
     const ref17 = await generateReferenceFrame(17);
-    const diff = await harness(page).compareFrameToReference(id, 17, `http://localhost:4873/${ref17}`);
+    const diff = await harness(page).compareFrameToReference(
+      id,
+      17,
+      `http://localhost:4873/${ref17}`,
+    );
     expect(diff.meanAbsDiffPct).toBeLessThan(6);
   });
 
@@ -64,7 +70,11 @@ test.describe('<video> element fallback (milestone C)', () => {
     expect(results).toHaveLength(3);
 
     const ref40 = await generateReferenceFrame(40);
-    const diff = await harness(page).compareFrameToReference(id, 40, `http://localhost:4873/${ref40}`);
+    const diff = await harness(page).compareFrameToReference(
+      id,
+      40,
+      `http://localhost:4873/${ref40}`,
+    );
     expect(diff.meanAbsDiffPct).toBeLessThan(6);
   });
 });
@@ -75,7 +85,9 @@ test.describe('AVIF sequence fallback (milestone D)', () => {
     await disableVideoElementPlayback(page);
   });
 
-  test('selectProxyVariant returns the AVIF variant when no video path is usable', async ({ page }) => {
+  test('selectProxyVariant returns the AVIF variant when no video path is usable', async ({
+    page,
+  }) => {
     await page.goto('/');
     const canPlay = await page.evaluate(() =>
       document.createElement('video').canPlayType('video/mp4'),
@@ -100,11 +112,17 @@ test.describe('AVIF sequence fallback (milestone D)', () => {
     expect(first.kind).toBe('ImageBitmap');
 
     const ref17 = await generateReferenceFrame(17);
-    const diff = await harness(page).compareFrameToReference(id, 17, `http://localhost:4873/${ref17}`);
+    const diff = await harness(page).compareFrameToReference(
+      id,
+      17,
+      `http://localhost:4873/${ref17}`,
+    );
     expect(diff.meanAbsDiffPct).toBeLessThan(6);
   });
 
-  test('available is the full range as soon as the sequence length is discovered', async ({ page }) => {
+  test('available is the full range as soon as the sequence length is discovered', async ({
+    page,
+  }) => {
     await page.goto('/');
     const id = await createPlayer(page, FIXTURES.avif);
     await harness(page).waitFirstFrame(id);

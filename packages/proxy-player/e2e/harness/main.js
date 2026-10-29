@@ -20,8 +20,10 @@ function frameSize(frame) {
 function frameKind(frame) {
   if (typeof VideoFrame !== 'undefined' && frame instanceof VideoFrame) return 'VideoFrame';
   if (typeof ImageBitmap !== 'undefined' && frame instanceof ImageBitmap) return 'ImageBitmap';
-  if (typeof HTMLVideoElement !== 'undefined' && frame instanceof HTMLVideoElement) return 'HTMLVideoElement';
-  if (typeof HTMLImageElement !== 'undefined' && frame instanceof HTMLImageElement) return 'HTMLImageElement';
+  if (typeof HTMLVideoElement !== 'undefined' && frame instanceof HTMLVideoElement)
+    return 'HTMLVideoElement';
+  if (typeof HTMLImageElement !== 'undefined' && frame instanceof HTMLImageElement)
+    return 'HTMLImageElement';
   return 'unknown';
 }
 

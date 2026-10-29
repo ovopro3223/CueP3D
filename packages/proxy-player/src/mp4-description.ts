@@ -16,7 +16,10 @@ export function getSampleEntryDescription(file: ISOFile, trackId: number): Uint8
   const trak = file.getTrackById(trackId);
   const entries = trak?.mdia?.minf?.stbl?.stsd?.entries;
   if (!entries || entries.length === 0) return undefined;
-  const entry = entries[0] as unknown as Record<string, { write(stream: DataStream): void } | undefined>;
+  const entry = entries[0] as unknown as Record<
+    string,
+    { write(stream: DataStream): void } | undefined
+  >;
   const box = entry.av1C ?? entry.vpcC;
   if (!box) return undefined;
   const stream = new DataStream(undefined, 0, Endianness.BIG_ENDIAN);

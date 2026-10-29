@@ -38,7 +38,12 @@ async function loadAndInspect(tier: Tier, baseUrl: string): Promise<LoadResult> 
   return { meshCount, progress };
 }
 
-async function runOnce(tier: Tier, baseUrl: string, stageParams: StageParams, warm: boolean): Promise<number> {
+async function runOnce(
+  tier: Tier,
+  baseUrl: string,
+  stageParams: StageParams,
+  warm: boolean,
+): Promise<number> {
   const renderer = makeRenderer();
   const stage = createStage(renderer, stageParams);
   const loader = createProgressiveLoader(renderer, { ktx2TranscoderPath: KTX2_TRANSCODER_PATH });
@@ -64,7 +69,11 @@ interface WarmVsColdResult {
   coldMs: number;
 }
 
-async function warmVsCold(tier: Tier, baseUrl: string, stageParams: StageParams): Promise<WarmVsColdResult> {
+async function warmVsCold(
+  tier: Tier,
+  baseUrl: string,
+  stageParams: StageParams,
+): Promise<WarmVsColdResult> {
   // Order matters: ANGLE/the GPU process can cache a compiled program by
   // shader source across independent WebGLRenderer contexts within the same
   // browser session, so whichever case runs first pays the only truly cold
@@ -102,7 +111,11 @@ function snapshotMemory(renderer: THREE.WebGLRenderer): MemoryCounts {
  * fixed overhead — the final snapshot is taken after both disposeObject and
  * loader.dispose(), i.e. the same fully-torn-down state as the baseline.
  */
-async function disposeCheck(tier: Tier, baseUrl: string, stageParams: StageParams): Promise<DisposeCheckResult> {
+async function disposeCheck(
+  tier: Tier,
+  baseUrl: string,
+  stageParams: StageParams,
+): Promise<DisposeCheckResult> {
   const renderer = makeRenderer();
   const stage = createStage(renderer, stageParams);
   const loader = createProgressiveLoader(renderer, { ktx2TranscoderPath: KTX2_TRANSCODER_PATH });

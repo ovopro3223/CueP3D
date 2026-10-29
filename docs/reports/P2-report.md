@@ -41,7 +41,13 @@ await renderProxyFrames({
   frames: 72,
   ringsDeg: [20],
   azimuthStartDeg: 0,
-  stage: { fovDeg: 35, target: [0, 0, 0], environment: 'studio-neutral', exposure: 1, toneMapping: 'aces' },
+  stage: {
+    fovDeg: 35,
+    target: [0, 0, 0],
+    environment: 'studio-neutral',
+    exposure: 1,
+    toneMapping: 'aces',
+  },
   background: '#ffffff',
   bounds: { center: [0, 0, 0], radius: 0.05 },
 });
@@ -51,10 +57,10 @@ await renderProxyFrames({
 
 72 frames, 1024×1024, Avocado.glb, measured end-to-end (browser launch + static server + model load/warm-up + all 72 renders + PNG encode + disk writes):
 
-| Mode                              | Total   | Per-frame (steady state) |
-| ---------------------------------- | ------- | ------------------------- |
-| SwiftShader (default launch flags) | 10.7 s  | ≈ 119 ms/frame            |
-| `useGpu: true` (host GPU escape)   | 4.1 s   | ≈ 39 ms/frame             |
+| Mode                               | Total  | Per-frame (steady state) |
+| ---------------------------------- | ------ | ------------------------ |
+| SwiftShader (default launch flags) | 10.7 s | ≈ 119 ms/frame           |
+| `useGpu: true` (host GPU escape)   | 4.1 s  | ≈ 39 ms/frame            |
 
 Both comfortably inside the brief's "~3 minutes" budget. Most of the SwiftShader total is fixed overhead (Chromium launch, 8 MB glTF parse, PMREM/KTX2Loader warm-up) rather than per-frame cost — the first 4 frames land at the ~2.1 s mark, after which frames arrive at a roughly constant rate.
 

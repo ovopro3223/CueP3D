@@ -63,7 +63,10 @@ export function openMp4Source(url: string): Mp4Source {
   const file = createFile();
   const frameData = new Map<number, Uint8Array>();
   const frameMetaByNumber = new Map<number, FrameMeta>();
-  const dataWaiters = new Map<number, Array<{ resolve: (data: Uint8Array) => void; reject: (error: Error) => void }>>();
+  const dataWaiters = new Map<
+    number,
+    Array<{ resolve: (data: Uint8Array) => void; reject: (error: Error) => void }>
+  >();
   let trackId = -1;
   let highestContiguousFrame = -1;
   let bytesLoaded = 0;

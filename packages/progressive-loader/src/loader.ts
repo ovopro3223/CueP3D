@@ -12,7 +12,11 @@ export interface ProgressiveLoaderOptions {
 }
 
 export interface ProgressiveLoader {
-  loadTier(tier: Tier, baseUrl: string, onProgress?: (bytes: number) => void): Promise<THREE.Object3D>;
+  loadTier(
+    tier: Tier,
+    baseUrl: string,
+    onProgress?: (bytes: number) => void,
+  ): Promise<THREE.Object3D>;
   warm(root: THREE.Object3D, stage: Stage): Promise<void>;
   dispose(): void;
 }
