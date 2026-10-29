@@ -1,5 +1,6 @@
 import type { Viewer } from '@understudy3d/viewer';
 import { formatBytes, formatMs, renderMetricsStrip } from './metrics.js';
+import type { BenchMetricsSnapshot } from './bench-hook.js';
 
 /**
  * `packages/viewer` is real now (landed and merged — see docs/reports/
@@ -16,6 +17,7 @@ export interface UnderstudyPaneOptions {
   readonly background: string;
   readonly policyOverrides: object | null;
   readonly reducedMotion: boolean;
+  readonly onUpdate?: ((state: string, metrics: BenchMetricsSnapshot) => void) | undefined;
 }
 
 export interface UnderstudyPaneHandle {
@@ -47,7 +49,7 @@ function noopHandle(): UnderstudyPaneHandle {
 export async function mountUnderstudyPane(
   options: UnderstudyPaneOptions,
 ): Promise<UnderstudyPaneHandle> {
-  const { container, metricsEl, background, reducedMotion } = options;
+  const { container, metricsEl, background, reducedMotion, onUpdate } = options;
   let baseUrl = options.baseUrl;
   let policyOverrides = options.policyOverrides;
   let disposed = false;
@@ -65,6 +67,7 @@ export async function mountUnderstudyPane(
       { label: 'Bytes before first visual', value: '—' },
       { label: 'Bytes total', value: '—' },
     ]);
+    onUpdate?.('blocked', { bytesBeforeFirstVisual: 0, bytesTotal: 0 });
   }
 
   try {
@@ -90,6 +93,14 @@ export async function mountUnderstudyPane(
       { label: 'Bytes before first visual', value: formatBytes(el.metrics.bytesBeforeFirstVisual) },
       { label: 'Bytes total', value: formatBytes(el.metrics.bytesTotal) },
     ]);
+    onUpdate?.(el.state, {
+      ttfv: el.metrics.ttfv,
+      tti: el.metrics.tti,
+      ttLive: el.metrics.ttLive,
+      ttSettled: el.metrics.ttSettled,
+      bytesBeforeFirstVisual: el.metrics.bytesBeforeFirstVisual,
+      bytesTotal: el.metrics.bytesTotal,
+    });
   }
 
   el.addEventListener('statechange', renderMetricsFromViewer);

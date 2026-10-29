@@ -6,12 +6,14 @@ import { validateManifest } from '@understudy3d/manifest';
 import { fetchWithProgress } from './fetch-with-progress.js';
 import { formatBytes, formatMs, renderMetricsStrip } from './metrics.js';
 import { rotateCameraAroundTarget } from './orbit.js';
+import type { BenchMetricsSnapshot } from './bench-hook.js';
 
 export interface PlainPaneOptions {
   readonly container: HTMLElement;
   readonly metricsEl: HTMLDListElement;
   readonly baseUrl: string;
   readonly reducedMotion: boolean;
+  readonly onUpdate?: ((state: string, metrics: BenchMetricsSnapshot) => void) | undefined;
 }
 
 export interface PlainPaneHandle {
@@ -45,7 +47,7 @@ function disposeScene(root: THREE.Object3D): void {
 }
 
 export function mountPlainPane(options: PlainPaneOptions): PlainPaneHandle {
-  const { container, metricsEl } = options;
+  const { container, metricsEl, onUpdate } = options;
   let baseUrl = options.baseUrl;
   const reducedMotion = options.reducedMotion;
 
@@ -159,6 +161,7 @@ export function mountPlainPane(options: PlainPaneOptions): PlainPaneHandle {
       { label: 'Time to first render', value: '—' },
       { label: 'Bytes total', value: '—' },
     ]);
+    onUpdate?.('loading', { bytesBeforeFirstVisual: 0, bytesTotal: 0 });
     showNote('Loading original .glb…', 'loading');
 
     try {
@@ -222,6 +225,15 @@ export function mountPlainPane(options: PlainPaneOptions): PlainPaneHandle {
         { label: 'Time to first render', value: formatMs(ttfr) },
         { label: 'Bytes total', value: formatBytes(bytesTotal) },
       ]);
+      // Plain has no tiering, so TTFV and TTI are the same event (docs/01-
+      // design.md §10) and bytesBeforeFirstVisual == bytesTotal: nothing is
+      // visible until the whole .glb has parsed.
+      onUpdate?.('rendered', {
+        ttfv: ttfr,
+        tti: ttfr,
+        bytesBeforeFirstVisual: bytesTotal,
+        bytesTotal,
+      });
     } catch (error) {
       if (signal.aborted) return;
       clearNote();
@@ -231,6 +243,7 @@ export function mountPlainPane(options: PlainPaneOptions): PlainPaneHandle {
         { label: 'Time to first render', value: '—' },
         { label: 'Bytes total', value: formatBytes(bytesTotal) },
       ]);
+      onUpdate?.('error', { bytesBeforeFirstVisual: bytesTotal, bytesTotal });
     }
   }
 
