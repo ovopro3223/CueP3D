@@ -18,7 +18,6 @@ import console from 'node:console';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.join(__dirname, '..');
 const repoRoot = path.join(pkgRoot, '..', '..');
-const nodeModules = path.join(repoRoot, 'node_modules', '.pnpm');
 
 const PORT = Number(process.env.PORT ?? 4873);
 
@@ -38,19 +37,27 @@ function contentType(filePath) {
   return MIME[path.extname(filePath)] ?? 'application/octet-stream';
 }
 
-async function resolvePnpmDep(name) {
-  const entries = await fs.readdir(nodeModules);
-  const prefix = `${name}@`;
-  const match = entries.find((entry) => entry.startsWith(prefix));
-  if (!match) throw new Error(`Could not find ${name} under ${nodeModules}`);
-  return path.join(nodeModules, match, 'node_modules', name);
+/**
+ * Resolves `name` through the package that actually declares it as a
+ * dependency, via that package's own node_modules (a real pnpm-managed
+ * symlink/junction to the exact version it resolved to) — not by scanning
+ * the shared .pnpm store for any folder starting with "name@", which picks
+ * an arbitrary version when more than one is present (as happens once this
+ * package is merged alongside siblings that pull in a different zod range;
+ * verified two zod versions coexist in the store after the Wave 1 merge).
+ */
+async function resolveOwnDep(ownerPkgDir, name) {
+  const dir = path.join(repoRoot, ownerPkgDir, 'node_modules', name);
+  const real = await fs.realpath(dir).catch(() => undefined);
+  if (!real) throw new Error(`Could not find ${name} under ${dir} (expected a pnpm symlink)`);
+  return real;
 }
 
 const routes = [];
 
 async function buildRoutes() {
-  const mp4boxDir = await resolvePnpmDep('mp4box');
-  const zodDir = await resolvePnpmDep('zod');
+  const mp4boxDir = await resolveOwnDep('packages/proxy-player', 'mp4box');
+  const zodDir = await resolveOwnDep('packages/manifest', 'zod');
   routes.push(
     { prefix: '/harness/', dir: path.join(__dirname, 'harness') },
     { prefix: '/dist/', dir: path.join(pkgRoot, 'dist') },
