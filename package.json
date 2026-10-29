@@ -19,7 +19,9 @@
     "fetch-samples": "node scripts/fetch-samples.mjs",
     "demo:assets": "pnpm --filter @understudy3d/demo run build:assets",
     "make-fixtures": "node scripts/make-fixtures.mjs",
-    "assert-free-codecs": "node scripts/assert-free-codecs.mjs"
+    "assert-free-codecs": "node scripts/assert-free-codecs.mjs",
+    "bench": "pnpm --filter @understudy3d/bench run bench",
+    "bench:gif": "pnpm --filter @understudy3d/bench run gif"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

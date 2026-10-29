@@ -1,0 +1,26 @@
+{
+  "name": "@understudy3d/bench",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Network-throttled Playwright benchmarks comparing apps/demo's Plain and Understudy panes; writes BENCHMARKS.md and docs/media/demo.gif.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run && pnpm run test:e2e",
+    "test:unit": "vitest run",
+    "test:e2e": "pnpm run build && playwright test -c e2e/playwright.config.ts",
+    "bench": "pnpm run build && node dist/bin/bench.js",
+    "gif": "pnpm run build && node dist/bin/record-gif.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^22.10.2",
+    "playwright": "^1.64.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
+  }
+}
