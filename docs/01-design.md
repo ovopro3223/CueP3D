@@ -24,8 +24,10 @@ Goals (measured by `bench/`, see §10):
 
 - Time-to-first-visual (TTFV) ≤ 500 ms on the `3g-fast` preset after HTML parse, for a model whose plain load takes > 10 s.
 - Time-to-interactive (scrub or orbit responds) ≤ 3 s on `3g-fast`.
-- No visible jump at handoff: mean absolute pixel difference between the last proxy frame and the first live frame < 2 % at the same azimuth (automated test).
-- No main-thread stall > 50 ms during handoff or tier upgrade (shaders precompiled, GPU uploads chunked).
+- No visible jump at handoff — measured as two separate things (see D-005d; a single "<2% proxy-vs-live" number conflated handoff-sync correctness with ordinary lossy-video noise):
+  - **Sync correctness** (camera, timing, frame identity — the thing this project actually controls): the live render at the moment of handoff must match a ground-truth render of the same frame/azimuth within < 0.5 % mean absolute pixel difference (automated test).
+  - **Visual continuity** (last AV1 proxy frame vs. first live frame, same azimuth): expected to show ordinary AV1 compression noise, not near-zero — budgeted at < 8 % mean absolute pixel difference (automated test), informational beyond that rather than a tuning target.
+- No main-thread stall > 50 ms during the visible cross-fade itself (shaders precompiled, GPU uploads chunked before `handoff` begins — background `warm()` work before that point is not required to be non-blocking; see D-005d).
 - Zero non-free dependencies; zero H.264/H.265 (CI-enforced).
 
 Non-goals (v1): walkable scenes, animation playback inside the proxy, transparent-background video, AR, server-side rendering, framework bindings beyond a vanilla web component.

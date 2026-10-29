@@ -89,6 +89,12 @@ export function createStage(renderer: THREE.WebGLRenderer, params: StageParams):
     depthTest: false,
     depthWrite: false,
     opacity: 1,
+    // The overlay shows an already-tonemapped, display-ready frame (a PNG
+    // baked by this same stage code at build time, or a decoded video/AVIF
+    // frame derived from it) — not a linear scene value. MeshBasicMaterial
+    // defaults toneMapped:true, which would apply the renderer's tonemapping
+    // curve to it a second time. See docs/change-requests/P6-overlay-tonemapping.md.
+    toneMapped: false,
   });
   const overlayQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), overlayMaterial);
   overlayQuad.visible = false;
