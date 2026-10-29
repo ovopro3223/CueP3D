@@ -20,7 +20,7 @@ export default tseslint.config(
   },
   {
     // Node-only build/tooling scripts: plain .mjs, no tsconfig "node" types to infer globals from.
-    files: ['scripts/**/*.mjs', '*.config.js'],
+    files: ['scripts/**/*.mjs', '*.config.js', '**/scripts/**/*.mjs', '**/tests/**/*.mjs'],
     languageOptions: {
       globals: globals.node,
     },

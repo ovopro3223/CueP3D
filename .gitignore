@@ -3,6 +3,9 @@ dist/
 .turbo/
 coverage/
 fixtures/.tmp/
+test-results/
+playwright-report/
+blob-report/
 
 # generated/downloaded, not committed (see scripts/fetch-samples.mjs)
 samples/*.glb
