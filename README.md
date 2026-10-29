@@ -16,7 +16,7 @@ Loading a glTF on the web means staring at a spinner until every byte of geometr
 
 ```
 page load ─► manifest (frame 0 inline) ─► visible ─► first AV1 keyframe ─► draggable ─► L0 glTF warm ─► cross-fade ─► live 3D ─► L1 ─► L2
-             one round trip, ~3–6 KB      ~230 ms     ~410 ms             ~650 ms       no stall, same camera, same lighting   (3g-fast)
+             one round trip, ~3–6 KB      ~250 ms     ~420–450 ms         ~650–1100 ms  no stall, same camera, same lighting   (3g-fast)
 ```
 
 **Real measured numbers** (median of 3 runs, real Chromium network throttling, real built models — full table in `BENCHMARKS.md`):
@@ -99,7 +99,7 @@ Object-centric content only (orbit camera). Single elevation ring. No transparen
 
 ## Development
 
-Built by Claude agents working in parallel git worktrees, one package per agent, against frozen contracts (`docs/01-design.md` §5) and a written plan (`docs/02-plan.md`) — each agent's report is in `docs/reports/`, and real bugs found only by merging and running the whole system live in a browser are in `docs/reports/wave1-integration-report.md` and `wave2-integration-report.md`. This process — not just the code it produced — is part of what this repository demonstrates.
+Built by Claude agents working in parallel git worktrees, one package per agent, against frozen contracts (`docs/01-design.md` §5) and a written plan (`docs/02-plan.md`) — each agent's report is in `docs/reports/`, and real bugs found only by merging and running the whole system live in a browser are in `docs/reports/wave1-integration-report.md`, `wave2-integration-report.md` and `first-ci-run-report.md` (the last one: what the first run on a machine nobody had developed on found, including two product bugs behind a number that had been documented as codec noise). This process — not just the code it produced — is part of what this repository demonstrates.
 
 ```bash
 pnpm install
