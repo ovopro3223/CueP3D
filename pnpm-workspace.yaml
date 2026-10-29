@@ -4,3 +4,4 @@ packages:
   - 'bench'
 allowBuilds:
   esbuild: true
+  puppeteer: true
