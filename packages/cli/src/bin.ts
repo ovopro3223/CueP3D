@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { parseBuildArgs, BuildArgsError, BUILD_HELP } from './parse-build-args.js';
-import { runBuild, NotImplementedError } from './build-command.js';
+import { runBuild } from './build-command.js';
 
 function printTopLevelHelp(): void {
   process.stdout.write(
@@ -36,8 +36,8 @@ async function main(): Promise<void> {
       process.exitCode = 1;
       return;
     }
-    if (error instanceof NotImplementedError) {
-      process.stderr.write(`${error.message}\n`);
+    if (error instanceof Error) {
+      process.stderr.write(`understudy build failed: ${error.message}\n`);
       process.exitCode = 1;
       return;
     }

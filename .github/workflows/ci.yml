@@ -39,6 +39,9 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Fetch sample models
+        run: pnpm run fetch-samples
+
       - name: Lint
         run: pnpm run lint
 
@@ -51,10 +54,7 @@ jobs:
       - name: Unit + integration tests
         run: pnpm run test
 
-      - name: Fetch sample models
-        run: pnpm run fetch-samples
-
-      - name: Build one sample
+      - name: Build one sample via the CLI
         run: pnpm run understudy -- build samples/Avocado.glb -o /tmp/understudy-out/avocado
 
       - name: Codec policy gate

@@ -6,13 +6,13 @@ Status: done. 2026-10-29. Integrator: Fable (this session).
 
 All five Wave 1 packages, built in parallel by independent Sonnet agents in separate git worktrees (one per package, each on its own branch cut from `b4d96a2`), merged into `master`:
 
-| Package | Branch | Tests |
-|---|---|---|
-| `build-geometry` (P1) | `p1-build-geometry` | 12 passed, 9 skipped (no `toktx` on this machine) |
-| `build-proxy` (P2) | `p2-build-proxy` | 6 passed |
-| `build-encode` (P3) | `p3-build-encode` | 29 passed |
-| `proxy-player` (P4) | `p4-proxy-player` | 28 unit + 22 e2e = 50 passed |
-| `progressive-loader` (P5) | `p5-progressive-loader` | 3 unit + 3 browser = 6 passed |
+| Package                   | Branch                  | Tests                                             |
+| ------------------------- | ----------------------- | ------------------------------------------------- |
+| `build-geometry` (P1)     | `p1-build-geometry`     | 12 passed, 9 skipped (no `toktx` on this machine) |
+| `build-proxy` (P2)        | `p2-build-proxy`        | 6 passed                                          |
+| `build-encode` (P3)       | `p3-build-encode`       | 29 passed                                         |
+| `proxy-player` (P4)       | `p4-proxy-player`       | 28 unit + 22 e2e = 50 passed                      |
+| `progressive-loader` (P5) | `p5-progressive-loader` | 3 unit + 3 browser = 6 passed                     |
 
 Every package's claims were independently re-verified in this session (not just read from its own report): `pnpm install` + `typecheck` + `test` re-run from a clean worktree for each, before merging. P2's and P4's visual/numeric claims (contact-sheet render, TTFV, cache hit rate) were spot-checked directly.
 

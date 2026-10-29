@@ -17,6 +17,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
+  "dependencies": {
+    "@understudy3d/build-encode": "workspace:*",
+    "@understudy3d/build-geometry": "workspace:*",
+    "@understudy3d/build-proxy": "workspace:*",
+    "@understudy3d/manifest": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2",

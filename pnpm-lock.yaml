@@ -109,6 +109,19 @@ importers:
         version: 2.1.9(@types/node@22.20.5)(supports-color@7.2.0)
 
   packages/cli:
+    dependencies:
+      '@understudy3d/build-encode':
+        specifier: workspace:*
+        version: link:../build-encode
+      '@understudy3d/build-geometry':
+        specifier: workspace:*
+        version: link:../build-geometry
+      '@understudy3d/build-proxy':
+        specifier: workspace:*
+        version: link:../build-proxy
+      '@understudy3d/manifest':
+        specifier: workspace:*
+        version: link:../manifest
     devDependencies:
       '@types/node':
         specifier: ^22.10.2
