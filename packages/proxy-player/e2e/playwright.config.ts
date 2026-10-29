@@ -10,6 +10,9 @@ export default defineConfig({
   timeout: 30_000,
   fullyParallel: false,
   workers: 1,
+  // Strict locally; retries only on the slower hosted CI runner (see
+  // packages/viewer/e2e/playwright.config.ts).
+  retries: process.env.CI ? 2 : 0,
   reporter: [['list']],
   use: {
     baseURL: `http://localhost:${PORT}`,

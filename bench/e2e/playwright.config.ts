@@ -8,10 +8,13 @@ const PORT = 4591;
 export default defineConfig({
   testDir: '.',
   testMatch: /.*\.spec\.ts/,
-  timeout: 30_000,
+  // The smoke test waits for a real model to reach 'settled' (L2 + three
+  // shader warms). ~10 s on a desktop GPU; the hosted CI runner renders
+  // WebGL in software on two cores, so give it room there.
+  timeout: process.env.CI ? 180_000 : 30_000,
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+  retries: process.env.CI ? 2 : 0,
   reporter: [['list']],
   use: {
     baseURL: `http://localhost:${String(PORT)}/`,

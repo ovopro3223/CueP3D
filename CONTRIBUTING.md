@@ -9,7 +9,7 @@ pnpm install
 pnpm run fetch-samples
 ```
 
-Prerequisites: Node 22.13+ (pnpm 11.x requires it), pnpm, `ffmpeg`/`ffprobe` with `libaom-av1` (or SVT-AV1/NVENC), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software/releases).
+Prerequisites: Node 22.13+ (pnpm 11.x requires it), pnpm, `ffmpeg`/`ffprobe` with `libaom-av1` (or SVT-AV1/NVENC), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software/releases). On Ubuntu 23.10+ the headless-Chromium render step needs `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0` (see the README's Quick start).
 
 ## Before sending a PR
 

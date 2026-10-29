@@ -32,6 +32,12 @@ jobs:
             "https://github.com/KhronosGroup/KTX-Software/releases/download/v${KTX_SOFTWARE_VERSION}/KTX-Software-${KTX_SOFTWARE_VERSION}-Linux-x86_64.deb"
           sudo apt-get install -y ./ktx.deb
 
+      - name: Allow Chromium's sandbox (Ubuntu 23.10+ restricts unprivileged user namespaces)
+        # Same as ci.yml: build-proxy renders through puppeteer with Chromium's
+        # sandbox on. Chromium's documented fix, keeps the sandbox:
+        # https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - uses: pnpm/action-setup@v4
         with:
           version: 11.20.0
@@ -47,8 +53,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Chromium's shared libraries
+        # puppeteer's Chromium (build-proxy) needs the same OS libraries
+        # Playwright's does; ci.yml gets them from `playwright install
+        # --with-deps`, this workflow installs no browsers so ask for the
+        # libraries alone.
+        run: pnpm --filter @cuep3d/viewer exec playwright install-deps chromium
+
       - name: Fetch sample models
         run: pnpm run fetch-samples
+
+      - name: Build packages
+        # build-assets.mjs invokes the compiled CLI (packages/cli/dist/bin.js).
+        run: pnpm run build
 
       - name: Build demo assets
         run: pnpm run demo:assets
@@ -63,6 +80,10 @@ jobs:
           CUEP3D_DEMO_BASE: /${{ github.event.repository.name }}/
 
       - uses: actions/configure-pages@v5
+        with:
+          # First deploy on a fresh repo: switch Pages to the "GitHub Actions"
+          # source instead of requiring a manual Settings → Pages step.
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:

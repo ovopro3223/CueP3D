@@ -46,7 +46,7 @@ The reasons, stated carefully:
 
 ## Quick start
 
-Not published to npm — clone and build it. Prerequisites (all free): Node 22.13+ (pnpm 11.x requires it), pnpm, `ffmpeg`/`ffprobe` built with `libaom-av1` (SVT-AV1 or NVENC are used automatically when present), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software) for KTX2 textures.
+Not published to npm — clone and build it. Prerequisites (all free): Node 22.13+ (pnpm 11.x requires it), pnpm, `ffmpeg`/`ffprobe` built with `libaom-av1` (SVT-AV1 or NVENC are used automatically when present), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software) for KTX2 textures. On Ubuntu 23.10+ (or any distro that restricts unprivileged user namespaces), the build's headless-Chromium render step needs `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0` once per boot — [Chromium's note](https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md).
 
 ```bash
 git clone https://github.com/ovopro3223/CueP3D- && cd CueP3D-

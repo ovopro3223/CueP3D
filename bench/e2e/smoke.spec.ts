@@ -11,22 +11,26 @@ import { waitForDebugState, waitForPaneState } from './helpers.js';
  * plain default page a human visitor actually gets (both panes, no query
  * params) reaching their own terminal state in the metrics-strip DOM.
  */
+// Upper bounds, not performance claims (BENCHMARKS.md is): generous on the
+// software-rendered CI runner, tight locally. See e2e/playwright.config.ts.
+const WAIT_MS = process.env.CI ? 150_000 : 20_000;
+
 test.describe('demo smoke (unthrottled, Avocado)', () => {
   test('debug hook reports Plain reaching "rendered"', async ({ page }) => {
     await page.goto('/?model=avocado&mode=plain&debug=1');
-    await waitForDebugState(page, 'rendered', 20_000);
+    await waitForDebugState(page, 'rendered', WAIT_MS);
   });
 
   test('debug hook reports CueP3D reaching "settled"', async ({ page }) => {
     await page.goto('/?model=avocado&mode=cuep3d&debug=1');
-    await waitForDebugState(page, 'settled', 20_000);
+    await waitForDebugState(page, 'settled', WAIT_MS);
   });
 
   test('default page: both panes reach their final state side by side', async ({ page }) => {
     await page.goto('/?model=avocado');
     await Promise.all([
-      waitForPaneState(page, '#plain-metrics', 'rendered', 20_000),
-      waitForPaneState(page, '#cuep3d-metrics', 'settled', 20_000),
+      waitForPaneState(page, '#plain-metrics', 'rendered', WAIT_MS),
+      waitForPaneState(page, '#cuep3d-metrics', 'settled', WAIT_MS),
     ]);
     await expect(page.locator('#plain-viewport canvas')).toBeVisible();
     await expect(page.locator('#cuep3d-viewport canvas')).toBeVisible();

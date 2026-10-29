@@ -24,6 +24,14 @@ jobs:
           sudo apt-get install -y ./ktx.deb
           toktx --version
 
+      - name: Allow Chromium's sandbox (Ubuntu 23.10+ restricts unprivileged user namespaces)
+        # build-proxy renders through puppeteer, which keeps Chromium's sandbox
+        # on (Playwright turns it off by default, so only puppeteer trips this).
+        # Re-enabling unprivileged user namespaces is Chromium's own documented
+        # fix, and keeps the sandbox instead of passing --no-sandbox:
+        # https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - uses: pnpm/action-setup@v4
         with:
           version: 11.20.0
@@ -79,10 +87,16 @@ jobs:
         run: pnpm run format
 
       - name: Typecheck
-        run: pnpm run typecheck
+        # The root `typecheck` script rebuilds first; packages are already
+        # built above, so call the per-package scripts directly.
+        run: pnpm -r --if-present run typecheck
 
       - name: Unit + integration tests
-        run: pnpm run test
+        # Serialized on purpose: three packages run Playwright e2e suites with
+        # software-rendered WebGL, and the hosted runner has two cores. The
+        # root `test` script's default concurrency (4) made the timing-sensitive
+        # viewer e2e tests flake even on a much faster local machine.
+        run: pnpm -r --workspace-concurrency=1 --if-present run test
 
       - name: Build one sample via the CLI
         # No `--` separator: the cuep3d script forwards argv[0] straight to
@@ -90,7 +104,7 @@ jobs:
         run: pnpm run cuep3d build samples/Avocado.glb -o /tmp/cuep3d-out/avocado
 
       - name: Codec policy gate
-        run: pnpm run assert-free-codecs -- fixtures /tmp/cuep3d-out
+        run: pnpm run assert-free-codecs fixtures /tmp/cuep3d-out
 
       - name: License policy gate
         run: pnpm run check-licenses

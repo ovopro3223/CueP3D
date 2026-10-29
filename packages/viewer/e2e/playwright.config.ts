@@ -11,7 +11,10 @@ export default defineConfig({
   timeout: 30_000,
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+  // Strict locally. On the hosted CI runner (two cores, software-rendered
+  // WebGL) the GPU-resource-count and long-task assertions can flake under
+  // load without indicating a regression — retries there, never here.
+  retries: process.env.CI ? 2 : 0,
   reporter: [['list']],
   use: {
     baseURL: `http://localhost:${PORT}/`,

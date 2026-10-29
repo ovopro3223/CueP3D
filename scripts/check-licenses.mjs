@@ -19,6 +19,7 @@ const ALLOWED = new Set([
   'MIT-0',
   'Apache-2.0',
   'Apache-2.0 AND LGPL-3.0-or-later', // D-005b: sharp/libvips, transitive via @gltf-transform/functions
+  'LGPL-3.0-or-later', // D-005b again: on Linux sharp ships libvips as its own package (@img/sharp-libvips-linux-x64)
   'Python-2.0',
   'ISC',
   'BSD-3-Clause',
