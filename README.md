@@ -1,5 +1,8 @@
 # CueP3D
 
+[![CI](https://github.com/ovopro3223/CueP3D-/actions/workflows/ci.yml/badge.svg)](https://github.com/ovopro3223/CueP3D-/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **A 3D model on screen in a few hundred milliseconds — then a seamless handoff to the real thing.**
 
 > Status: working end to end — build pipeline, viewer, demo and real benchmarks all real, all in this repo. Not published to npm yet; build it from source (Quick start below). See `docs/02-plan.md` for how it was built and `BENCHMARKS.md` for the numbers behind the claims below.
