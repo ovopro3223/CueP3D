@@ -1,7 +1,7 @@
 import { mkdtemp, readdir, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { ProxyVariantSchema } from '@understudy3d/manifest';
+import { ProxyVariantSchema } from '@cuep3d/manifest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { encodeProxy } from './encode-proxy.js';
 import { probeKeyframeIndices, probeVideoStream } from './probe.js';

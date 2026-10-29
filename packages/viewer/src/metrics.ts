@@ -3,7 +3,7 @@ import type { ViewerMetrics } from './types.js';
 /**
  * Tracks the four timing marks (§5.6) as `performance.now()` deltas from
  * the moment `createViewer` was called, plus the two byte counters. Also
- * writes real `performance.mark()`s (`understudy:ttfv` etc.) so the marks
+ * writes real `performance.mark()`s (`cuep3d:ttfv` etc.) so the marks
  * show up in DevTools/CDP traces, independent of the metrics object itself.
  */
 export function createMetricsTracker(t0: number) {
@@ -31,23 +31,23 @@ export function createMetricsTracker(t0: number) {
     markTtfv(bytesBeforeFirstVisual: number): void {
       metrics.ttfv = now();
       metrics.bytesBeforeFirstVisual = bytesBeforeFirstVisual;
-      mark('understudy:ttfv');
+      mark('cuep3d:ttfv');
     },
     markTti(): void {
       if (metrics.tti !== undefined) return;
       metrics.tti = now();
-      mark('understudy:tti');
+      mark('cuep3d:tti');
     },
     markTtLive(bytesBeforeFirstVisualIfDegraded?: number): void {
       metrics.ttLive = now();
       if (bytesBeforeFirstVisualIfDegraded !== undefined) {
         metrics.bytesBeforeFirstVisual = bytesBeforeFirstVisualIfDegraded;
       }
-      mark('understudy:ttLive');
+      mark('cuep3d:ttLive');
     },
     markTtSettled(): void {
       metrics.ttSettled = now();
-      mark('understudy:ttSettled');
+      mark('cuep3d:ttSettled');
     },
     setBytesTotal(bytes: number): void {
       metrics.bytesTotal = bytes;

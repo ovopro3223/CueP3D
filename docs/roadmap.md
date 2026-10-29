@@ -4,7 +4,7 @@ Items deliberately out of scope for v1, collected from the design doc, decisions
 
 ## Performance
 
-- **Code-split `apps/demo`** so the initial chunk needed before first paint is materially smaller than today's ~300 KB gzip (D-005e) — closes most of the gap between viewer-internal TTFV (593–605 ms, 3g-fast) and wall-clock TTFV (~2750 ms). Candidates: lazy-load `@understudy3d/viewer` only when the Understudy pane is about to mount (it already is a dynamic `import()`; the main chunk itself still pulls in three.js/the Plain pane eagerly), route-level splitting, or a leaner entry point for library consumers who don't need the demo's comparison UI at all.
+- **Code-split `apps/demo`** so the initial chunk needed before first paint is materially smaller than today's ~300 KB gzip (D-005e) — closes most of the gap between viewer-internal TTFV (593–605 ms, 3g-fast) and wall-clock TTFV (~2750 ms). Candidates: lazy-load `@cuep3d/viewer` only when the CueP3D pane is about to mount (it already is a dynamic `import()`; the main chunk itself still pulls in three.js/the Plain pane eagerly), route-level splitting, or a leaner entry point for library consumers who don't need the demo's comparison UI at all.
 - Re-run the full `bench/` sweep after any such change and update `BENCHMARKS.md`.
 
 ## 3D content and delivery
@@ -16,12 +16,12 @@ Items deliberately out of scope for v1, collected from the design doc, decisions
 
 ## Viewer / integration
 
-- **`<understudy-viewer>` has no `policy`/`debug` attribute path** — only `createViewer()`'s own JS options expose `QualityPolicy` overrides and the debug metrics hook (confirmed in P6's own report). `apps/demo`'s "Simulate low-end device" toggle is consequently a no-op against the real custom element; P7b worked around it at the page level (`bench-hook.ts`) rather than touching the frozen `packages/viewer`. Worth deciding whether the element should grow a settable `policy` property, or whether consumers who need overrides are expected to call `createViewer()` directly instead of using the element.
-- **Framework wrappers** (React/Vue/Svelte components around `<understudy-viewer>`) — v1 ships the raw custom element only.
+- **`<cuep3d-viewer>` has no `policy`/`debug` attribute path** — only `createViewer()`'s own JS options expose `QualityPolicy` overrides and the debug metrics hook (confirmed in P6's own report). `apps/demo`'s "Simulate low-end device" toggle is consequently a no-op against the real custom element; P7b worked around it at the page level (`bench-hook.ts`) rather than touching the frozen `packages/viewer`. Worth deciding whether the element should grow a settable `policy` property, or whether consumers who need overrides are expected to call `createViewer()` directly instead of using the element.
+- **Framework wrappers** (React/Vue/Svelte components around `<cuep3d-viewer>`) — v1 ships the raw custom element only.
 
 ## Tooling
 
-- **Per-tier simplification overrides** — `understudy build` always uses `DEFAULT_TIERS` (ratios/texture sizes); there's no CLI flag to override them per model (P0b's report).
+- **Per-tier simplification overrides** — `cuep3d build` always uses `DEFAULT_TIERS` (ratios/texture sizes); there's no CLI flag to override them per model (P0b's report).
 - **AR, animation playback inside the proxy** — both explicitly out of scope for v1 (§3 non-goals).
 
 ## Testing

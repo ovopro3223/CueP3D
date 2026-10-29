@@ -70,10 +70,10 @@ jobs:
         run: pnpm run test
 
       - name: Build one sample via the CLI
-        run: pnpm run understudy -- build samples/Avocado.glb -o /tmp/understudy-out/avocado
+        run: pnpm run cuep3d -- build samples/Avocado.glb -o /tmp/cuep3d-out/avocado
 
       - name: Codec policy gate
-        run: pnpm run assert-free-codecs -- fixtures /tmp/understudy-out
+        run: pnpm run assert-free-codecs -- fixtures /tmp/cuep3d-out
 
       - name: License policy gate
         run: pnpm run check-licenses

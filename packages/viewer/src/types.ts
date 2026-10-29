@@ -16,7 +16,7 @@ export interface ViewerMetrics {
  * Frozen per docs/01-design.md §5.6. `policy` and `background` are exactly
  * the two optional fields the design specifies; `debug` is this package's
  * own additive extension (brief, "Behaviour" §9 — exposes
- * `window.__understudyMetrics` for the bench to read), not a breaking change
+ * `window.__cuep3dMetrics` for the bench to read), not a breaking change
  * to the frozen shape.
  */
 export interface ViewerOptions {

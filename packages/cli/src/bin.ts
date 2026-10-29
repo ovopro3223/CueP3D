@@ -4,7 +4,7 @@ import { runBuild } from './build-command.js';
 
 function printTopLevelHelp(): void {
   process.stdout.write(
-    'Usage: understudy <command>\n\nCommands:\n  build   Build an understudy bundle from a .glb/.gltf model\n\n',
+    'Usage: cuep3d <command>\n\nCommands:\n  build   Build a cuep3d bundle from a .glb/.gltf model\n\n',
   );
 }
 
@@ -37,7 +37,7 @@ async function main(): Promise<void> {
       return;
     }
     if (error instanceof Error) {
-      process.stderr.write(`understudy build failed: ${error.message}\n`);
+      process.stderr.write(`cuep3d build failed: ${error.message}\n`);
       process.exitCode = 1;
       return;
     }

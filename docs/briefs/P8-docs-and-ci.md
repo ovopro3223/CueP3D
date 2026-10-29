@@ -9,9 +9,9 @@ Make the repository legible to a hiring team in five minutes and to a user in te
 ## README.md (final structure — the skeleton already exists; keep its codec-policy wording unless a fact is wrong)
 
 1. One-paragraph problem statement and a one-sentence idea.
-2. `docs/media/demo.gif` (from P7), then the headline benchmark row (3g-fast, DamagedHelmet, plain vs Understudy).
+2. `docs/media/demo.gif` (from P7), then the headline benchmark row (3g-fast, DamagedHelmet, plain vs CueP3D).
 3. "How it works": the ASCII/Mermaid diagram from `01-design.md` §4, trimmed; the handoff rule in two sentences.
-4. Quick start: install prerequisites (Node 20+, pnpm, ffmpeg with libaom or SVT-AV1, KTX-Software `toktx`), `pnpm understudy build model.glb -o out/`, drop `<understudy-viewer src="out/understudy.json">` into a page, import map/CDN note.
+4. Quick start: install prerequisites (Node 20+, pnpm, ffmpeg with libaom or SVT-AV1, KTX-Software `toktx`), `pnpm cuep3d build model.glb -o out/`, drop `<cuep3d-viewer src="out/cuep3d.json">` into a page, import map/CDN note.
 5. Codec policy (verbatim from the skeleton, fact-checked against the links in `docs/codec-policy.md`).
 6. Browser support matrix: WebCodecs AV1 / `<video>` AV1 / VP9 / AVIF per Chrome, Edge, Firefox, Safari (macOS, iOS) with "hardware only" notes; link to the fallback chain.
 7. Prior art (from §11, with links) and "what is new".

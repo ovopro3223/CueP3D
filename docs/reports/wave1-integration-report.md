@@ -36,10 +36,10 @@ pnpm run test        # 85/85 (cli 9, manifest 8, stage 9, build-geometry 12+9ski
 node scripts/assert-free-codecs.mjs fixtures   # clean, 74 media + 86 source files
 ```
 
-Worktrees removed (branches kept on `master` history via merge commits); `Understudy-worktrees/` directory deleted.
+Worktrees removed (branches kept on `master` history via merge commits); `CueP3D-worktrees/` directory deleted.
 
 ## What's next (Wave 2, per docs/02-plan.md)
 
 - **P6 — viewer** (Sonnet 5): depends on `proxy-player` and `progressive-loader`'s now-merged, real APIs. The state machine, `QualityPolicy`, and handoff are the last genuinely hard piece.
-- **P0b — wire the CLI**: `understudy build` currently throws `NotImplementedError`; needs P1→P2→P3 orchestration.
+- **P0b — wire the CLI**: `cuep3d build` currently throws `NotImplementedError`; needs P1→P2→P3 orchestration.
 - **P7a — demo app skeleton** can start in parallel with P6.

@@ -14,7 +14,7 @@
  * (requires @gltf-transform/core, @gltf-transform/extensions and
  * @gltf-transform/functions — devDependencies of packages/progressive-loader;
  * run from the package directory, or via
- * `pnpm --filter @understudy3d/progressive-loader exec node scripts/make-fixture.mjs`,
+ * `pnpm --filter @cuep3d/progressive-loader exec node scripts/make-fixture.mjs`,
  * so the bare imports resolve through its own node_modules)
  */
 import { Document, Accessor, NodeIO } from '@gltf-transform/core';

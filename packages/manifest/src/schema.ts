@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Schema for understudy.json. Matches docs/01-design.md §5.2 exactly —
+ * Schema for cuep3d.json. Matches docs/01-design.md §5.2 exactly —
  * that section is the source of truth; keep this file in sync with it.
  */
 

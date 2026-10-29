@@ -1,5 +1,5 @@
 export { createViewer } from './create-viewer.js';
-import { defineUnderstudyViewerElement } from './custom-element.js';
+import { defineCueP3DViewerElement } from './custom-element.js';
 export type {
   Viewer,
   ViewerOptions,
@@ -10,7 +10,7 @@ export type {
   ErrorEventDetail,
 } from './types.js';
 
-export { UnderstudyViewerElement, defineUnderstudyViewerElement } from './custom-element.js';
+export { CueP3DViewerElement, defineCueP3DViewerElement } from './custom-element.js';
 
 export {
   QualityPolicy,
@@ -47,8 +47,8 @@ export {
   type DragSample,
 } from './scrub.js';
 
-// Side effect, on import, matching the frozen `<understudy-viewer>` tag
+// Side effect, on import, matching the frozen `<cuep3d-viewer>` tag
 // being usable the moment this package is loaded (§5.6) — a no-op outside
 // a browser (typeof customElements guard inside) and idempotent if this
 // module is evaluated more than once (customElements.get guard inside).
-defineUnderstudyViewerElement();
+defineCueP3DViewerElement();

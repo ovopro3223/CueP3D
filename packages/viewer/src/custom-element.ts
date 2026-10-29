@@ -1,14 +1,14 @@
 import { createViewer } from './create-viewer.js';
 import type { Viewer, ViewerMetrics, ViewerState } from './types.js';
 
-const TAG_NAME = 'understudy-viewer';
+const TAG_NAME = 'cuep3d-viewer';
 
 const IDLE_METRICS: ViewerMetrics = { bytesBeforeFirstVisual: 0, bytesTotal: 0 };
 
 const FORWARDED_EVENTS = ['statechange', 'metrics', 'error'] as const;
 
 /**
- * `<understudy-viewer src="…" background="#fff"></understudy-viewer>` —
+ * `<cuep3d-viewer src="…" background="#fff"></cuep3d-viewer>` —
  * wraps `createViewer` (§5.6: "the element is assumed to implement the
  * Viewer interface directly"). `state`/`degraded`/`metrics` delegate to the
  * internal `createViewer()` instance, and its events are re-dispatched on
@@ -18,7 +18,7 @@ const FORWARDED_EVENTS = ['statechange', 'metrics', 'error'] as const;
  * …)` would never fire and `el.metrics`/`el.state` would always read as
  * whatever the pre-mount default is.
  */
-export class UnderstudyViewerElement extends HTMLElement implements Viewer {
+export class CueP3DViewerElement extends HTMLElement implements Viewer {
   private viewerImpl: Viewer | null = null;
 
   static get observedAttributes(): string[] {
@@ -77,8 +77,8 @@ export class UnderstudyViewerElement extends HTMLElement implements Viewer {
   }
 }
 
-export function defineUnderstudyViewerElement(): void {
+export function defineCueP3DViewerElement(): void {
   if (typeof customElements === 'undefined') return;
   if (customElements.get(TAG_NAME)) return;
-  customElements.define(TAG_NAME, UnderstudyViewerElement);
+  customElements.define(TAG_NAME, CueP3DViewerElement);
 }

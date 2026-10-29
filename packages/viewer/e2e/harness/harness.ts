@@ -1,4 +1,4 @@
-import { azimuthForFrameIndex } from '@understudy3d/stage';
+import { azimuthForFrameIndex } from '@cuep3d/stage';
 import { createViewer } from '../../src/index.js';
 import type { Viewer, ViewerOptions } from '../../src/types.js';
 
@@ -306,7 +306,7 @@ function outstandingRafCount(): number {
 }
 
 function rendererMemory(): { geometries: number; textures: number } | null {
-  const debug = (window as unknown as Record<string, unknown>).__understudyDebug as
+  const debug = (window as unknown as Record<string, unknown>).__cuep3dDebug as
     { renderer?: { info: { memory: { geometries: number; textures: number } } } } | undefined;
   if (!debug?.renderer) return null;
   return { ...debug.renderer.info.memory };

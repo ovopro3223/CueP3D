@@ -4,7 +4,7 @@ import type { SweepReport } from './types.js';
 export const TTFV_GOAL_MS = 500;
 export const TTI_GOAL_MS = 3000;
 const GOAL_PRESET_ID = '3g-fast';
-const GOAL_MODE = 'understudy';
+const GOAL_MODE = 'cuep3d';
 
 export interface GoalViolation {
   readonly modelSlug: string;

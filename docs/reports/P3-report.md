@@ -4,7 +4,7 @@ Status: done. 2026-10-29.
 
 ## What was built
 
-`packages/build-encode` (`@understudy3d/build-encode`): turns a P2 "NNN.png" frame sequence into
+`packages/build-encode` (`@cuep3d/build-encode`): turns a P2 "NNN.png" frame sequence into
 the manifest's `ProxyVariant[]` — AV1 at every requested size (largest → smallest), VP9 and an
 AVIF still-sequence at the smallest size only — ffprobe-verifying every file's codec, dimensions
 and exact frame count before returning.
@@ -32,7 +32,7 @@ and exact frame count before returning.
   `fixtures/proxy-fixture.*` exist, which are outputs, not valid `encodeProxy` input.
 
 **Tests: 29/29 passing** across 4 files (`frames.test.ts` 8, `select-encoder.test.ts` 8,
-`codec-policy.test.ts` 4, `encode-proxy.test.ts` 9). `pnpm -F @understudy3d/build-encode run
+`codec-policy.test.ts` 4, `encode-proxy.test.ts` 9). `pnpm -F @cuep3d/build-encode run
 test`, `run typecheck`, and repo-wide `pnpm run lint` are all clean.
 
 **Codec gate (D-004):** `assertFreeCodecs` is exercised against the repo's committed AV1/VP9/AVIF
@@ -107,8 +107,8 @@ not fixed here since the brief pins the exact flags to use per encoder.
 
 ```bash
 pnpm install
-pnpm -F @understudy3d/build-encode run build
-pnpm -F @understudy3d/build-encode run typecheck   # clean
-pnpm -F @understudy3d/build-encode run test        # 29/29 passing, ~20s
+pnpm -F @cuep3d/build-encode run build
+pnpm -F @cuep3d/build-encode run typecheck   # clean
+pnpm -F @cuep3d/build-encode run test        # 29/29 passing, ~20s
 pnpm run lint                                       # clean (repo-wide)
 ```

@@ -1,8 +1,8 @@
 /**
- * Deliberately NOT typed against @understudy3d/viewer's QualityPolicyOptions
+ * Deliberately NOT typed against @cuep3d/viewer's QualityPolicyOptions
  * (packages/viewer doesn't exist in this worktree yet — see P7a report). This
  * stays a plain, local shape so apps/demo's own typecheck/lint/test stay
- * green regardless of that package's build status. understudy-pane.ts casts
+ * green regardless of that package's build status. cuep3d-pane.ts casts
  * this into the real option when it wires the element.
  */
 export interface LowEndPolicyOverrides {

@@ -1,18 +1,18 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { buildGeometry } from '@understudy3d/build-geometry';
-import { renderProxyFrames } from '@understudy3d/build-proxy';
-import { encodeProxy } from '@understudy3d/build-encode';
-import { validateManifest, type Manifest } from '@understudy3d/manifest';
+import { buildGeometry } from '@cuep3d/build-geometry';
+import { renderProxyFrames } from '@cuep3d/build-proxy';
+import { encodeProxy } from '@cuep3d/build-encode';
+import { validateManifest, type Manifest } from '@cuep3d/manifest';
 import type { BuildArgs } from './parse-build-args.js';
 
-const GENERATOR = 'understudy-cli@0.1.0';
+const GENERATOR = 'cuep3d-cli@0.1.0';
 const FOV_DEG = 35;
 const FPS = 24;
 
 /**
  * Orchestrates P1 (build-geometry) -> P2 (build-proxy) -> P3 (build-encode)
- * and assembles understudy.json. P1 and P3 write their outputs directly into
+ * and assembles cuep3d.json. P1 and P3 write their outputs directly into
  * `outDir` (tier .glb files, proxy videos/AVIF sequences) since Tier.url and
  * ProxyVariant.url are resolved relative to the manifest; P2's frames and
  * camera.json are build-time-only inputs to P3, so they go in a `.proxy-source`
@@ -21,7 +21,7 @@ const FPS = 24;
 export async function runBuild(args: BuildArgs): Promise<void> {
   const largestSize = Math.max(...args.proxySizes);
 
-  console.log(`understudy build: ${args.input} -> ${args.outDir}`);
+  console.log(`cuep3d build: ${args.input} -> ${args.outDir}`);
 
   console.log('[1/3] build-geometry: normalizing and building L0/L1/L2 tiers...');
   const geometry = await buildGeometry(args.input, { outDir: args.outDir, textures: 'ktx2' });
@@ -80,7 +80,7 @@ export async function runBuild(args: BuildArgs): Promise<void> {
     tiers: geometry.tiers,
   };
 
-  const manifestPath = path.join(args.outDir, 'understudy.json');
+  const manifestPath = path.join(args.outDir, 'cuep3d.json');
   await writeFile(manifestPath, JSON.stringify(validateManifest(manifest), null, 2));
   console.log(`Wrote ${manifestPath}`);
 }

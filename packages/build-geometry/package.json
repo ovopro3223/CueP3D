@@ -1,5 +1,5 @@
 {
-  "name": "@understudy3d/build-geometry",
+  "name": "@cuep3d/build-geometry",
   "version": "0.1.0",
   "description": "P1 — turns a .glb/.gltf into a normalized model and three self-contained quality tiers (meshopt geometry + KTX2 textures).",
   "license": "MIT",
@@ -24,7 +24,7 @@
     "@gltf-transform/core": "^4.5.1",
     "@gltf-transform/extensions": "^4.5.1",
     "@gltf-transform/functions": "^4.5.1",
-    "@understudy3d/manifest": "workspace:*",
+    "@cuep3d/manifest": "workspace:*",
     "meshoptimizer": "^1.3.0"
   },
   "devDependencies": {

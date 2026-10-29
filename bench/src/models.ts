@@ -15,5 +15,5 @@ export const BENCH_MODELS: readonly BenchModel[] = [
   { slug: 'waterbottle', label: 'WaterBottle' },
 ];
 
-export type BenchMode = 'plain' | 'understudy';
-export const BENCH_MODES: readonly BenchMode[] = ['plain', 'understudy'];
+export type BenchMode = 'plain' | 'cuep3d';
+export const BENCH_MODES: readonly BenchMode[] = ['plain', 'cuep3d'];

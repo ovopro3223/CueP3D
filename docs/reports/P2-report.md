@@ -6,11 +6,11 @@ Status: done. 2026-10-29.
 
 `packages/build-proxy` exports one function, `renderProxyFrames(opts)` (see `src/render-proxy.ts` / `src/index.ts`), matching the brief's Input/Output contract exactly:
 
-- Launches headless Chromium (Puppeteer) and points it at a bundled render page (`page/render-page.ts`, built standalone with esbuild into `dist/page/render-page.js`) that imports `@understudy3d/stage`'s `createStage` plus three.js `GLTFLoader` + `KTX2Loader` + `MeshoptDecoder`, so build-time frames are produced by the exact same camera/environment/tone-mapping code the live viewer uses (D-007).
+- Launches headless Chromium (Puppeteer) and points it at a bundled render page (`page/render-page.ts`, built standalone with esbuild into `dist/page/render-page.js`) that imports `@cuep3d/stage`'s `createStage` plus three.js `GLTFLoader` + `KTX2Loader` + `MeshoptDecoder`, so build-time frames are produced by the exact same camera/environment/tone-mapping code the live viewer uses (D-007).
 - A tiny ephemeral Node `http` static server (`src/static-server.ts`) serves the page bundle, the three.js KTX2 transcoder (`basis_transcoder.js`/`.wasm`, resolved from `node_modules/three` via `createRequire(...).resolve`, not copied), and the input model's bytes — no external network.
-- `StageParams` and the baked background colour are passed to the page via the URL (base64 JSON in a query param), so `window.__understudyRender` keeps exactly the three methods the brief names (`load`, `setView`, `snapshot`); `snapshot()` returns base64 PNG text rather than a literal `Uint8Array` over the wire (an internal choice — see Deviations) and the Node side decodes it to a `Buffer` and writes `frames/NNN.png`.
+- `StageParams` and the baked background colour are passed to the page via the URL (base64 JSON in a query param), so `window.__cuep3dRender` keeps exactly the three methods the brief names (`load`, `setView`, `snapshot`); `snapshot()` returns base64 PNG text rather than a literal `Uint8Array` over the wire (an internal choice — see Deviations) and the Node side decodes it to a `Buffer` and writes `frames/NNN.png`.
 - Renders ring-major per §5.1: for ring `r`, frame `i`, global index `g = r·frames + i`; azimuth comes from `azimuthForFrameIndex(i, frames, azimuthStart)` (local `i`, not `g`) so multi-ring output stays correct, matching the design doc precisely. `camera.json`'s `perFrame[g].i === g` (the file-numbering index), with `azimuthDeg`/`elevationDeg` for that frame.
-- `distance` is computed once via `@understudy3d/stage`'s `fitDistance(bounds.radius, stage.fovDeg)` and merged into the `StageParams` returned to the caller and written into `camera.json`.
+- `distance` is computed once via `@cuep3d/stage`'s `fitDistance(bounds.radius, stage.fovDeg)` and merged into the `StageParams` returned to the caller and written into `camera.json`.
 - Renderer config per the brief: `antialias: true`, `preserveDrawingBuffer: true`, `setPixelRatio(1)`, background baked by setting `stage.scene.background` and the renderer's clear colour explicitly (not part of the frozen `Stage` API — build-proxy's own responsibility, same as the live viewer's own clear colour per §5.2). Two warm `stage.render()` calls after `renderer.compileAsync()` before the first snapshot, as specified.
 - SwiftShader flags (`--enable-unsafe-swiftshader --use-gl=angle --use-angle=swiftshader`) are the default; `useGpu: true` in the options drops them to use the host GPU — an additive, optional field, not in the brief's literal `opts` type but backward-compatible with it. Also added `onProgress?(rendered, total)`, used for the measurements below.
 
@@ -25,14 +25,14 @@ Avocado isn't P1-normalized (not centred at the origin), so I computed its real 
 ```bash
 pnpm install
 pnpm run fetch-samples                       # samples/Avocado.glb etc.
-pnpm -F @understudy3d/build-proxy run build
-pnpm -F @understudy3d/build-proxy run typecheck   # clean
-pnpm -F @understudy3d/build-proxy run test        # 6/6 passing
+pnpm -F @cuep3d/build-proxy run build
+pnpm -F @cuep3d/build-proxy run typecheck   # clean
+pnpm -F @cuep3d/build-proxy run test        # 6/6 passing
 pnpm run test                                 # whole repo: 32/32 passing
 ```
 
 ```ts
-import { renderProxyFrames } from '@understudy3d/build-proxy';
+import { renderProxyFrames } from '@cuep3d/build-proxy';
 
 await renderProxyFrames({
   modelUrlOrPath: 'samples/Avocado.glb',
@@ -86,7 +86,7 @@ Both comfortably inside the brief's "~3 minutes" budget. Most of the SwiftShader
 - **Root-level touches (not `manifest`/`stage`, but outside my package directory), both minimal and additive:**
   - `pnpm-workspace.yaml`: set `allowBuilds.puppeteer: true` (pnpm appended the key as `set this to true or false` on `pnpm install`; required to let Puppeteer's postinstall download Chromium at all).
   - `eslint.config.js`: widened the Node-globals override from `'scripts/**/*.mjs'` to `['scripts/**/*.mjs', '**/scripts/**/*.mjs', '*.config.js']` so `packages/build-proxy/scripts/build-page.mjs` (a per-package build script, same pattern as the root `scripts/` dir) gets `process`/`console` globals instead of `no-undef` errors.
-- `window.__understudyRender.snapshot()` returns a base64 string across the Puppeteer/CDP boundary, not a literal `Uint8Array` — cheaper to serialize than a numeric-keyed array over CDP; the Node side still hands back real PNG bytes on disk, so the documented `renderProxyFrames` contract (the brief's actual Input/Output section) is unaffected. This is an internal implementation detail of the "Implementation notes" pseudo-interface, not the public contract.
+- `window.__cuep3dRender.snapshot()` returns a base64 string across the Puppeteer/CDP boundary, not a literal `Uint8Array` — cheaper to serialize than a numeric-keyed array over CDP; the Node side still hands back real PNG bytes on disk, so the documented `renderProxyFrames` contract (the brief's actual Input/Output section) is unaffected. This is an internal implementation detail of the "Implementation notes" pseudo-interface, not the public contract.
 - Added two optional fields to `opts` beyond the brief's literal type: `useGpu?: boolean` (the brief's own "flag `--gpu` to use the host GPU locally") and `onProgress?: (rendered, total) => void` (brief: "Expose progress callbacks"). Both optional, additive, non-breaking.
 - Did not serve `outDir` over the static HTTP server. Nothing needs to fetch from it — frames are written straight to disk from the base64 PNG the page hands back over `page.evaluate`, so only the page bundle, the KTX2 transcoder, and the model bytes are actually served.
 - PNG pixel assertions in tests decode through a throwaway Puppeteer page (`Blob` → `createImageBitmap` → `canvas.getImageData`) instead of adding a Node PNG-decoding package — Puppeteer is already a mandated dependency; this avoids a second new one.

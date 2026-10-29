@@ -1,5 +1,5 @@
 {
-  "name": "@understudy3d/progressive-loader",
+  "name": "@cuep3d/progressive-loader",
   "version": "0.1.0",
   "description": "Loads one glTF quality tier at a time (meshopt geometry + KTX2 textures) and warms it (shader compile + GPU upload + one off-screen render) before the viewer is allowed to show it.",
   "license": "MIT",
@@ -23,8 +23,8 @@
     "test:browser:setup": "playwright install chromium"
   },
   "dependencies": {
-    "@understudy3d/manifest": "workspace:*",
-    "@understudy3d/stage": "workspace:*",
+    "@cuep3d/manifest": "workspace:*",
+    "@cuep3d/stage": "workspace:*",
     "meshoptimizer": "^1.3.0",
     "three": "^0.171.0"
   },

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
-import { validateManifest } from '@understudy3d/manifest';
+import { validateManifest } from '@cuep3d/manifest';
 import { runBuild } from './build-command.js';
 
 const execFileAsync = promisify(execFile);
@@ -40,8 +40,8 @@ const sampleAvailable = await stat(samplePath)
 describe.skipIf(!toktxAvailable || !sampleAvailable)(
   'runBuild end-to-end (requires toktx + `pnpm run fetch-samples`)',
   () => {
-    it('builds a complete, schema-valid understudy bundle from a real .glb', async () => {
-      const outDir = await mkdtemp(path.join(tmpdir(), 'understudy-cli-test-'));
+    it('builds a complete, schema-valid cuep3d bundle from a real .glb', async () => {
+      const outDir = await mkdtemp(path.join(tmpdir(), 'cuep3d-cli-test-'));
       try {
         await runBuild({
           input: samplePath,
@@ -54,9 +54,7 @@ describe.skipIf(!toktxAvailable || !sampleAvailable)(
           encoder: 'auto',
         });
 
-        const manifestJson = JSON.parse(
-          await readFile(path.join(outDir, 'understudy.json'), 'utf8'),
-        );
+        const manifestJson = JSON.parse(await readFile(path.join(outDir, 'cuep3d.json'), 'utf8'));
         const manifest = validateManifest(manifestJson);
 
         expect(manifest.tiers.map((t) => t.id)).toEqual(['L0', 'L1', 'L2']);

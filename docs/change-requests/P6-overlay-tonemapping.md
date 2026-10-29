@@ -1,4 +1,4 @@
-# P6 change request — `@understudy3d/stage`'s overlay quad should not be tonemapped
+# P6 change request — `@cuep3d/stage`'s overlay quad should not be tonemapped
 
 Status: proposed, not applied (P6 agent protocol: work only inside `packages/viewer`, raise
 shared-contract changes here instead of editing `packages/stage` directly).
@@ -23,7 +23,7 @@ call on that renderer, including the overlay pass — `stage.render()`'s second 
 that disables it for just that pass.
 
 The overlay quad displays a proxy frame (a PNG, baked by `build-proxy`'s `render-page.ts` using
-this same `@understudy3d/stage`, or a decoded AV1/VP9/AVIF frame) that has **already** been
+this same `@cuep3d/stage`, or a decoded AV1/VP9/AVIF frame) that has **already** been
 through the build-time renderer's own tonemapping pass once — it is a finished, display-ready
 sRGB image, not a linear HDR scene value. With `toneMapped: true`, the live viewer's renderer
 applies the tonemapping curve to it a **second time** before display.

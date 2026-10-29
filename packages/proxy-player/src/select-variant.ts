@@ -1,4 +1,4 @@
-import type { ProxyVariant } from '@understudy3d/manifest';
+import type { ProxyVariant } from '@cuep3d/manifest';
 import {
   canPlayTypeSupported,
   defaultCodecString,

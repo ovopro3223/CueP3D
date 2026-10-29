@@ -1,4 +1,4 @@
-import type { Tier, Vec3 } from '@understudy3d/manifest';
+import type { Tier, Vec3 } from '@cuep3d/manifest';
 
 export type TextureMode = 'etc1s' | 'uastc' | 'uastc-if-normal-or-orm-else-etc1s';
 

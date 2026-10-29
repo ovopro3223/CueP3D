@@ -4,7 +4,7 @@
  * packages/progressive-loader/tests/server.mjs). Serves:
  *   /                     -> index.html (loads the bundled harness)
  *   /harness.js           -> esbuild bundle of harness/harness.ts (bundles
- *                            three, every @understudy3d/* workspace dep and
+ *                            three, every @cuep3d/* workspace dep and
  *                            this package's own src/ into one IIFE)
  *   /fixtures/*            -> the repo's shared fixtures/ directory
  *   /fixtures/out-cube/basis/* -> three's own Basis Universal transcoder,

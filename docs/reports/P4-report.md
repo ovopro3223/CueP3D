@@ -121,7 +121,7 @@ decoding where the browser offers it and two royalty-free fallbacks everywhere e
   installed via `playwright install chromium`.
 - No bundler was added for the browser test harness — this package's own `tsc` output
   plus an import map (`e2e/harness/index.html`) resolving the two bare-specifier
-  runtime deps (`mp4box`, and `@understudy3d/manifest` → `zod`) to vendored copies was
+  runtime deps (`mp4box`, and `@cuep3d/manifest` → `zod`) to vendored copies was
   enough; one fewer moving part than a bundling step.
 
 ## Bugs found and fixed while building this (left in for transparency)
@@ -168,8 +168,8 @@ so they lint clean under the existing root config without it needing a new overr
 
 ```bash
 pnpm install
-pnpm -F @understudy3d/manifest run build   # proxy-player depends on its dist/
-pnpm -F @understudy3d/proxy-player run typecheck   # clean
-pnpm -F @understudy3d/proxy-player run test        # vitest (28) + playwright (22), 50/50
+pnpm -F @cuep3d/manifest run build   # proxy-player depends on its dist/
+pnpm -F @cuep3d/proxy-player run typecheck   # clean
+pnpm -F @cuep3d/proxy-player run test        # vitest (28) + playwright (22), 50/50
 node scripts/assert-free-codecs.mjs fixtures       # clean
 ```

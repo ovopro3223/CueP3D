@@ -4,7 +4,7 @@ Read first: `docs/00-decisions.md` (D-007), `docs/01-design.md` §5.1, §5.3, §
 
 ## Goal
 
-`packages/build-proxy`: render the orbit frames for the understudy video in headless Chromium using the shared `@understudy3d/stage` package, so the frames match what the live viewer will render pixel-for-pixel.
+`packages/build-proxy`: render the orbit frames for the proxy video in headless Chromium using the shared `@cuep3d/stage` package, so the frames match what the live viewer will render pixel-for-pixel.
 
 ## Input
 
@@ -29,7 +29,7 @@ export async function renderProxyFrames(opts: {
 
 ## Implementation notes
 
-- Bundle a tiny page (`render-page.html` + `render-page.ts` built with Vite library mode or esbuild at package build time) that imports `@understudy3d/stage`, three.js `GLTFLoader` + `MeshoptDecoder` + `KTX2Loader` (transcoder files served from `three/examples/jsm/libs/basis`), exposes `window.__understudyRender = { load(url), setView(θ, φ), snapshot(): Promise<Uint8Array PNG> }`.
+- Bundle a tiny page (`render-page.html` + `render-page.ts` built with Vite library mode or esbuild at package build time) that imports `@cuep3d/stage`, three.js `GLTFLoader` + `MeshoptDecoder` + `KTX2Loader` (transcoder files served from `three/examples/jsm/libs/basis`), exposes `window.__cuep3dRender = { load(url), setView(θ, φ), snapshot(): Promise<Uint8Array PNG> }`.
 - Serve `outDir`, the page bundle and the transcoder files from a local static server on an ephemeral port (Node `http`), no external network.
 - Launch Puppeteer (`puppeteer` package, downloads Chromium) with `--enable-unsafe-swiftshader --use-gl=angle --use-angle=swiftshader` as the default (deterministic, works in CI); flag `--gpu` to use the host GPU locally. `deviceScaleFactor: 1`, viewport `size × size`.
 - Renderer: `antialias: true`, `preserveDrawingBuffer: true`, `setPixelRatio(1)`, `outputColorSpace = SRGBColorSpace`, tone mapping from `stage`. Take frames via `canvas.toBlob('image/png')` → base64 → Node, not `page.screenshot` (avoids compositor scaling).

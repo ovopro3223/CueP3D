@@ -1,5 +1,5 @@
-import type { ProxyVariant } from '@understudy3d/manifest';
-import { resolveUrl } from '@understudy3d/manifest';
+import type { ProxyVariant } from '@cuep3d/manifest';
+import { resolveUrl } from '@cuep3d/manifest';
 import type { ProxyPlayer } from './types.js';
 import { createWebCodecsProxyPlayer } from './webcodecs-player.js';
 import { createVideoElementProxyPlayer } from './video-element-player.js';

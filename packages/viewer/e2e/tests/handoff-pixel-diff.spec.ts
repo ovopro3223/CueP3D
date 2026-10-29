@@ -75,7 +75,7 @@ test.beforeEach(async ({ page }) => {
   // viewer lifecycle absorbs it before the real measurement below.
   const warmupId = await page.evaluate(
     ({ options }) => window.Harness.create(JSON.stringify(options)),
-    { options: { src: '/fixtures/out-cube/understudy.json', policy: FORCE_HIGH_END_POLICY } },
+    { options: { src: '/fixtures/out-cube/cuep3d.json', policy: FORCE_HIGH_END_POLICY } },
   );
   await page.evaluate((id) => window.Harness.waitForState(id, 'live', 10_000), warmupId);
   await page.evaluate((id) => window.Harness.dispose(id), warmupId);
@@ -98,7 +98,7 @@ test('the last proxy frame and the first live frame match within the AV1-noise-a
   page: Page;
 }) => {
   const id = await page.evaluate(({ options }) => window.Harness.create(JSON.stringify(options)), {
-    options: { src: '/fixtures/out-cube/understudy.json', policy: FORCE_HIGH_END_POLICY },
+    options: { src: '/fixtures/out-cube/cuep3d.json', policy: FORCE_HIGH_END_POLICY },
   });
 
   const reachedProxyReady = await page.evaluate(
@@ -230,7 +230,7 @@ test('the live render is pixel-identical to the exact ground-truth frame it shou
   // under 2% on this machine; this one is the actual proof the handoff
   // mechanism is correct, and holds it to a far stricter bound.
   const id = await page.evaluate(({ options }) => window.Harness.create(JSON.stringify(options)), {
-    options: { src: '/fixtures/out-cube/understudy.json', policy: FORCE_HIGH_END_POLICY },
+    options: { src: '/fixtures/out-cube/cuep3d.json', policy: FORCE_HIGH_END_POLICY },
   });
   await page.evaluate((id) => window.Harness.waitForState(id, 'proxy-ready', 10_000), id);
   await page.evaluate(

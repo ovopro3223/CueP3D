@@ -1,4 +1,4 @@
-# Understudy — Design (v1)
+# CueP3D — Design (v1)
 
 Status: approved for planning 2026-10-29. Decisions referenced as D-xxx live in `00-decisions.md`.
 
@@ -8,9 +8,9 @@ Loading a 3D model on the web today means the visitor stares at a blank box or s
 
 ## 2. Idea
 
-Give every model an **understudy**: a tiny orbit video (AV1, hardware-decoded) rendered from the exact same camera rig and lighting the live viewer will use.
+Give every model a **proxy stand-in**: a tiny orbit video (AV1, hardware-decoded) rendered from the exact same camera rig and lighting the live viewer will use.
 
-1. Page loads → the understudy's first keyframe arrives (~20–40 KB) → the model is visible.
+1. Page loads → the proxy's first keyframe arrives (~20–40 KB) → the model is visible.
 2. The visitor drags → the video is **scrubbed** frame-by-frame; it feels like rotating the object.
 3. Meanwhile the real glTF streams in as a quality ladder: L0 (tiny) → L1 → L2 (full).
 4. When L0 is loaded _and_ its shaders are compiled _and_ one frame has been rendered off-screen, the viewer sets the live camera to the exact azimuth the visitor scrubbed to and cross-fades over ~150 ms. Nothing jumps.
@@ -22,7 +22,7 @@ On a device that cannot decode AV1, a royalty-free fallback is used (VP9, then a
 
 Goals (measured by `bench/`, see §10):
 
-- Time-to-first-visual (TTFV) ≤ 500 ms on the `3g-fast` preset, for a model whose plain load takes > 10 s. Measured from `createViewer()`'s own construction (`window.__understudyMetrics`), not from navigation start (see D-005e) — this is a goal for the proxy-player/viewer mechanism itself, deliberately scoped apart from however large the page embedding it happens to be. **Current real measurement (`BENCHMARKS.md`, 2026-10-29): 593–605 ms, 19–21 % over** — reported as measured, not adjusted to pass (same discipline as D-005d). The gap tracks almost exactly with `apps/demo`'s own un-code-split JS bundle (~300 KB gzip) taking that long to fetch over 1.6 Mbps before `createViewer()` can even run; see D-005e and the roadmap.
+- Time-to-first-visual (TTFV) ≤ 500 ms on the `3g-fast` preset, for a model whose plain load takes > 10 s. Measured from `createViewer()`'s own construction (`window.__cuep3dMetrics`), not from navigation start (see D-005e) — this is a goal for the proxy-player/viewer mechanism itself, deliberately scoped apart from however large the page embedding it happens to be. **Current real measurement (`BENCHMARKS.md`, 2026-10-29): 593–605 ms, 19–21 % over** — reported as measured, not adjusted to pass (same discipline as D-005d). The gap tracks almost exactly with `apps/demo`'s own un-code-split JS bundle (~300 KB gzip) taking that long to fetch over 1.6 Mbps before `createViewer()` can even run; see D-005e and the roadmap.
 - Time-to-interactive (scrub or orbit responds) ≤ 3 s on `3g-fast`. **Met**: 757–1270 ms measured.
 - No visible jump at handoff — measured as two separate things (see D-005d; a single "<2% proxy-vs-live" number conflated handoff-sync correctness with ordinary lossy-video noise):
   - **Sync correctness** (camera, timing, frame identity — the thing this project actually controls): the live render at the moment of handoff must match a ground-truth render of the same frame/azimuth within < 0.5 % mean absolute pixel difference (automated test).
@@ -35,18 +35,18 @@ Non-goals (v1): walkable scenes, animation playback inside the proxy, transparen
 ## 4. Architecture
 
 ```
-BUILD TIME (Node CLI: understudy build model.glb -o out/)
+BUILD TIME (Node CLI: cuep3d build model.glb -o out/)
   model.glb
     │  P1 build-geometry (gltf-transform: center, simplify, meshopt, KTX2)
     ├──► model.L0.glb  model.L1.glb  model.L2.glb
-    │  P2 build-proxy (headless Chromium + @understudy3d/stage)
+    │  P2 build-proxy (headless Chromium + @cuep3d/stage)
     ├──► frames/000.png … 071.png  + camera.json
     │  P3 build-encode (ffmpeg: AV1 mp4, VP9 mp4, AVIF seq)   ──► assert-free-codecs
     ├──► proxy-1024.av1.mp4  proxy-512.av1.mp4  proxy-512.vp9.mp4  frames-512/*.avif
-    └──► understudy.json  (manifest: bounds, stage params, variants, tiers)
+    └──► cuep3d.json  (manifest: bounds, stage params, variants, tiers)
 
 RUN TIME (browser)
-  <understudy-viewer src="out/understudy.json">
+  <cuep3d-viewer src="out/cuep3d.json">
     viewer (P6)  ── QualityPolicy ──► picks proxy variant + max tier + download mode
       ├─ proxy-player (P4): mp4box.js demux → WebCodecs VideoDecoder → frame LRU
       │     fallback: <video> seek; fallback: AVIF sequence
@@ -60,16 +60,16 @@ Packages (pnpm workspace):
 
 | Package                        | Pipeline                     | Owner wave | Purpose                                                                                            |
 | ------------------------------ | ---------------------------- | ---------- | -------------------------------------------------------------------------------------------------- |
-| `packages/manifest`            | P0                           | 0          | zod schema + TS types + validator for `understudy.json`                                            |
+| `packages/manifest`            | P0                           | 0          | zod schema + TS types + validator for `cuep3d.json`                                                |
 | `packages/stage`               | P0                           | 0          | camera rig, environment presets, tone mapping, azimuth/elevation math — shared by build and viewer |
 | `packages/build-geometry`      | P1                           | 1          | glb → L0/L1/L2                                                                                     |
 | `packages/build-proxy`         | P2                           | 1          | glb → PNG frames + camera.json                                                                     |
 | `packages/build-encode`        | P3                           | 1          | frames → AV1/VP9/AVIF + manifest patch + codec gate                                                |
-| `packages/cli`                 | P0 skeleton, wired in wave 2 | 0/2        | `understudy build` orchestrating P1→P2→P3 and writing the manifest                                 |
+| `packages/cli`                 | P0 skeleton, wired in wave 2 | 0/2        | `cuep3d build` orchestrating P1→P2→P3 and writing the manifest                                     |
 | `packages/proxy-player`        | P4                           | 1          | decode + scrub + frame cache                                                                       |
 | `packages/progressive-loader`  | P5                           | 1          | tier loading + warm-up                                                                             |
 | `packages/viewer`              | P6                           | 2          | state machine, QualityPolicy, handoff, public API, web component                                   |
-| `apps/demo`                    | P7                           | 2–3        | GitHub Pages demo: plain vs Understudy, metrics overlay                                            |
+| `apps/demo`                    | P7                           | 2–3        | GitHub Pages demo: plain vs CueP3D, metrics overlay                                                |
 | `bench`                        | P7                           | 3          | Playwright network-throttled measurements → `BENCHMARKS.md`                                        |
 | `docs`, `README.md`, `.github` | P8                           | 0 + 3      | documentation, codec policy, CI                                                                    |
 
@@ -85,12 +85,12 @@ Packages (pnpm workspace):
 - Frame i of ring r has `θ_i = azimuthStart + i · 2π / frames`, `φ = rings[r].elevation`. Frames are stored ring-major: ring 0 is frames `0..frames−1`, ring 1 is `frames..2·frames−1`, etc. v1 default: 72 frames, one ring at 20° elevation.
 - Scrub mapping must feel identical to three.js `OrbitControls` with `rotateSpeed = 1`: for a horizontal pointer delta `Δx` px on a canvas of height `h` px, `θ −= 2π · Δx / h`. Frame index = `round(((θ − azimuthStart) mod 2π) / (2π / frames)) mod frames`.
 
-### 5.2 Manifest `understudy.json` (schema in `packages/manifest`)
+### 5.2 Manifest `cuep3d.json` (schema in `packages/manifest`)
 
 ```ts
 interface Manifest {
   version: 1;
-  generator: string; // "understudy-cli@0.1.0"
+  generator: string; // "cuep3d-cli@0.1.0"
   source: { name: string; license?: string; attribution?: string };
   bounds: { center: [number, number, number]; radius: number }; // centre is [0,0,0] after normalization
   stage: StageParams; // exactly what P2 used; the viewer must use the same
@@ -135,7 +135,7 @@ interface Tier {
 
 All URLs are relative to the manifest's own URL.
 
-### 5.3 `@understudy3d/stage` API
+### 5.3 `@cuep3d/stage` API
 
 ```ts
 createStage(renderer: THREE.WebGLRenderer, params: StageParams): Stage
@@ -156,7 +156,7 @@ azimuthForFrameIndex(i: number, frames: number, azimuthStartRad: number): number
 
 Environment presets are built-in (three.js `RoomEnvironment` through `PMREMGenerator` for `studio-neutral`; a warm variant with tinted lights). No external HDR files in v1.
 
-### 5.4 `@understudy3d/proxy-player` API (P4)
+### 5.4 `@cuep3d/proxy-player` API (P4)
 
 ```ts
 selectProxyVariant(variants: ProxyVariant[]): Promise<ProxyVariant | null>   // VideoDecoder.isConfigSupported / canPlayType / AVIF probe
@@ -173,7 +173,7 @@ interface ProxyPlayer {
 type FrameImage = VideoFrame | ImageBitmap | HTMLImageElement | HTMLVideoElement;
 ```
 
-### 5.5 `@understudy3d/progressive-loader` API (P5)
+### 5.5 `@cuep3d/progressive-loader` API (P5)
 
 ```ts
 createProgressiveLoader(renderer: THREE.WebGLRenderer, opts?: { ktx2TranscoderPath?: string }): ProgressiveLoader
@@ -184,7 +184,7 @@ interface ProgressiveLoader {
 }
 ```
 
-### 5.6 `@understudy3d/viewer` public API (P6)
+### 5.6 `@cuep3d/viewer` public API (P6)
 
 ```ts
 createViewer(container: HTMLElement, options: { src: string; policy?: Partial<QualityPolicyOptions>; background?: string }): Viewer
@@ -195,7 +195,7 @@ interface Viewer extends EventTarget {
   dispose(): void;
 }
 // events: 'statechange' (detail.state), 'metrics' (detail = metrics), 'error' (detail.error)
-// <understudy-viewer src="…" background="#fff"></understudy-viewer> wraps createViewer
+// <cuep3d-viewer src="…" background="#fff"></cuep3d-viewer> wraps createViewer
 ```
 
 ## 6. Runtime flow (viewer state machine)
@@ -220,12 +220,12 @@ Handoff rule: never swap on a frame where (a) shaders are not compiled, (b) the 
 
 ## 7. Build flow (CLI)
 
-`understudy build <model.glb> --out <dir> [--frames 72] [--rings 20] [--proxy-sizes 1024,512] [--env studio-neutral] [--background #ffffff] [--encoder auto|libaom|svt-av1|nvenc]`
+`cuep3d build <model.glb> --out <dir> [--frames 72] [--rings 20] [--proxy-sizes 1024,512] [--env studio-neutral] [--background #ffffff] [--encoder auto|libaom|svt-av1|nvenc]`
 
 1. P1: normalize (centre, prune, dedup, flatten where safe) → tiers with targets L0 ≈ 8 % triangles / 256 px textures (ETC1S), L1 ≈ 35 % / 1024 px (ETC1S), L2 = 100 % / ≤ 2048 px (UASTC when source textures are normal/roughness-heavy, else ETC1S). Record bytes/triangles.
 2. P2: serve `packages/stage` bundle to headless Chromium, load L2, render `frames × rings` PNGs at the largest proxy size with `pixelRatio = 1`, antialias on, `preserveDrawingBuffer`. Write `camera.json` (StageParams + per-frame θ/φ).
 3. P3: ffmpeg encodes AV1 at each size (downscale with lanczos), VP9 at 512, AVIF sequence at 512. Keyframe interval 8. Verify with ffprobe. Run `assert-free-codecs`.
-4. CLI assembles and validates `understudy.json`.
+4. CLI assembles and validates `cuep3d.json`.
 
 ## 8. Error handling
 
@@ -244,7 +244,7 @@ Handoff rule: never swap on a frame where (a) shaders are not compiled, (b) the 
 
 ## 10. Benchmarks (`bench/`)
 
-Presets (Chromium CDP `Network.emulateNetworkConditions`): `3g-fast` 1.6 Mbps↓ / 150 ms RTT, `4g` 9 Mbps / 60 ms, `wifi` 30 Mbps / 20 ms. Models: Avocado (CC0-1.0), BoomBox (CC0-1.0), WaterBottle (CC0-1.0) — see D-005a for why WaterBottle and not DamagedHelmet. Modes: `plain` (GLTFLoader on the original glb, first render = TTFV = TTI) vs `understudy`. 3 runs each, medians to `BENCHMARKS.md` with the exact commit hash and Chromium version.
+Presets (Chromium CDP `Network.emulateNetworkConditions`): `3g-fast` 1.6 Mbps↓ / 150 ms RTT, `4g` 9 Mbps / 60 ms, `wifi` 30 Mbps / 20 ms. Models: Avocado (CC0-1.0), BoomBox (CC0-1.0), WaterBottle (CC0-1.0) — see D-005a for why WaterBottle and not DamagedHelmet. Modes: `plain` (GLTFLoader on the original glb, first render = TTFV = TTI) vs `cuep3d`. 3 runs each, medians to `BENCHMARKS.md` with the exact commit hash and Chromium version.
 
 ## 11. Prior art and what is new
 

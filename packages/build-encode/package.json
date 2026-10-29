@@ -1,5 +1,5 @@
 {
-  "name": "@understudy3d/build-encode",
+  "name": "@cuep3d/build-encode",
   "version": "0.1.0",
   "description": "Encodes a PNG frame sequence into AV1/VP9/AVIF proxy variants and enforces the no-H.264/H.265 codec policy.",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@understudy3d/manifest": "workspace:*"
+    "@cuep3d/manifest": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

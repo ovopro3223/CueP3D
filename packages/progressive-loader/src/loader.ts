@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'meshoptimizer';
-import { resolveUrl, type Tier } from '@understudy3d/manifest';
-import type { Stage } from '@understudy3d/stage';
+import { resolveUrl, type Tier } from '@cuep3d/manifest';
+import type { Stage } from '@cuep3d/stage';
 import { fetchWithProgress } from './progress-fetch.js';
 import { collectTextures } from './textures.js';
 

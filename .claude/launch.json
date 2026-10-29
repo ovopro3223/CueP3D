@@ -2,11 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "understudy-demo",
+      "name": "cuep3d-demo",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@understudy3d/demo", "run", "dev"],
+      "runtimeArgs": ["--filter", "@cuep3d/demo", "run", "dev"],
       "port": 5173,
-      "url": "http://localhost:5173/understudy/"
+      "url": "http://localhost:5173/cuep3d/"
     }
   ]
 }

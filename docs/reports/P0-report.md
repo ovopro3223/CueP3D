@@ -5,9 +5,9 @@ Status: done. 2026-10-29.
 ## What was built
 
 - Monorepo: pnpm workspaces (`packages/*`, `apps/*`, `bench`), strict TS base config, ESLint 9 flat config (typescript-eslint + Node globals for scripts), Prettier.
-- `packages/manifest`: zod schema for the full `understudy.json` shape (§5.2), `validateManifest` (reports every invalid field, not just the first), `resolveUrl`. 8 tests.
+- `packages/manifest`: zod schema for the full `cuep3d.json` shape (§5.2), `validateManifest` (reports every invalid field, not just the first), `resolveUrl`. 8 tests.
 - `packages/stage`: `fitDistance`, `frameIndexForAzimuth`, `azimuthForFrameIndex`, `cameraPositionForView` (§5.1 math) plus `createStage` (camera rig, `studio-neutral`/`studio-warm` PMREM environments, tone mapping, overlay-quad pass for the proxy frame). 9 math tests (round-trip azimuth↔frame for 72/36 frames and a non-zero azimuth start; camera position at θ=0 → +Z and θ=π/2 → +X). `createStage` itself is not unit-tested here (needs a real WebGL context) — that lands with P2/P6's browser tests.
-- `packages/cli`: `understudy build` argument parsing and help text per §7, with `runBuild` stubbed to throw `NotImplementedError` until Wave 2 wires P1–P3 together. 9 tests.
+- `packages/cli`: `cuep3d build` argument parsing and help text per §7, with `runBuild` stubbed to throw `NotImplementedError` until Wave 2 wires P1–P3 together. 9 tests.
 - `scripts/fetch-samples.mjs`: downloads Avocado, BoomBox, WaterBottle from `KhronosGroup/glTF-Sample-Assets@8f492390ddc7a2ae221a1369ef560589cf8c70fb` and writes `samples/LICENSES.md` from each model's own `metadata.json`. Verified live — all three download and the license file generates correctly.
 - `scripts/assert-free-codecs.mjs`: ffprobes media files for `av1`/`vp9` and greps source for forbidden codec identifiers (excluding itself, since naming them is its job). Verified clean against the fixtures.
 - `scripts/make-fixtures.mjs`: generates the committed P4 fixtures from a single numbered-pattern source — `fixtures/proxy-fixture.av1.mp4`, `fixtures/proxy-fixture.vp9.mp4`, `fixtures/avif/000..071.avif` (72 frames, 256×256, GOP 8, 0-indexed). Verified: ffprobe reports `codec_name=av1`/`vp9`, `width=height=256`, `nb_frames=72`; keyframes land exactly at i % 8 == 0.

@@ -6,7 +6,7 @@ export class ManifestValidationError extends Error {
 
   constructor(issues: { path: string; message: string }[]) {
     const summary = issues.map((i) => `  - ${i.path || '(root)'}: ${i.message}`).join('\n');
-    super(`Invalid understudy manifest:\n${summary}`);
+    super(`Invalid cuep3d manifest:\n${summary}`);
     this.name = 'ManifestValidationError';
     this.issues = issues;
   }

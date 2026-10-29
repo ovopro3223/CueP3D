@@ -1,6 +1,6 @@
 import { mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
-import type { ProxyVariant } from '@understudy3d/manifest';
+import type { ProxyVariant } from '@cuep3d/manifest';
 import { encodeAvifSequence } from './encode-avif.js';
 import { encodeAv1, encodeVp9 } from './encode-video.js';
 import { readFrameSequence } from './frames.js';

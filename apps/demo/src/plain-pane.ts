@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { createStage, type Stage } from '@understudy3d/stage';
-import { validateManifest } from '@understudy3d/manifest';
+import { createStage, type Stage } from '@cuep3d/stage';
+import { validateManifest } from '@cuep3d/manifest';
 import { fetchWithProgress } from './fetch-with-progress.js';
 import { formatBytes, formatMs, renderMetricsStrip } from './metrics.js';
 import { rotateCameraAroundTarget } from './orbit.js';
@@ -165,12 +165,12 @@ export function mountPlainPane(options: PlainPaneOptions): PlainPaneHandle {
     showNote('Loading original .glb…', 'loading');
 
     try {
-      const manifestResponse = await fetch(`${baseUrl}understudy.json`, {
+      const manifestResponse = await fetch(`${baseUrl}cuep3d.json`, {
         cache: cacheMode,
         signal,
       });
       if (!manifestResponse.ok) {
-        throw new Error(`understudy.json: ${String(manifestResponse.status)}`);
+        throw new Error(`cuep3d.json: ${String(manifestResponse.status)}`);
       }
       const manifestJson = await manifestResponse.json();
       bytesTotal += Number(manifestResponse.headers.get('content-length') ?? 0);

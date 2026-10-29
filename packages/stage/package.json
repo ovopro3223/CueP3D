@@ -1,5 +1,5 @@
 {
-  "name": "@understudy3d/stage",
+  "name": "@cuep3d/stage",
   "version": "0.1.0",
   "description": "Shared camera rig, environment and overlay-quad renderer used by both the build-time proxy renderer and the live viewer.",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@understudy3d/manifest": "workspace:*",
+    "@cuep3d/manifest": "workspace:*",
     "three": "^0.171.0"
   },
   "devDependencies": {

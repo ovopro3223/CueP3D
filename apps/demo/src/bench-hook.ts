@@ -1,7 +1,7 @@
 /**
  * The bench harness (`bench/`) loads this page as `/?model=…&mode=plain|
- * understudy&debug=1` and reads `window.__understudyMetrics` /
- * `window.__understudyState` (docs/01-design.md §9's debug-hook convention;
+ * cuep3d&debug=1` and reads `window.__cuep3dMetrics` /
+ * `window.__cuep3dState` (docs/01-design.md §9's debug-hook convention;
  * `packages/viewer`'s own `ViewerOptions.debug` sets the same global, but
  * only from inside `createViewer` — the demo's custom-element usage doesn't
  * route `debug`/`policy` through to it, see docs/reports/P7a-report.md's
@@ -22,12 +22,12 @@ export interface BenchMetricsSnapshot {
 
 declare global {
   interface Window {
-    __understudyMetrics?: BenchMetricsSnapshot;
-    __understudyState?: string;
+    __cuep3dMetrics?: BenchMetricsSnapshot;
+    __cuep3dState?: string;
   }
 }
 
 export function exposeBenchState(state: string, metrics: BenchMetricsSnapshot): void {
-  window.__understudyState = state;
-  window.__understudyMetrics = metrics;
+  window.__cuep3dState = state;
+  window.__cuep3dMetrics = metrics;
 }

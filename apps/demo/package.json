@@ -1,8 +1,8 @@
 {
-  "name": "@understudy3d/demo",
+  "name": "@cuep3d/demo",
   "private": true,
   "version": "0.1.0",
-  "description": "GitHub Pages demo: plain three.js GLTFLoader vs <understudy-viewer>, side by side, with live metrics.",
+  "description": "GitHub Pages demo: plain three.js GLTFLoader vs <cuep3d-viewer>, side by side, with live metrics.",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -14,9 +14,9 @@
     "build:assets": "node scripts/build-assets.mjs"
   },
   "dependencies": {
-    "@understudy3d/manifest": "workspace:*",
-    "@understudy3d/stage": "workspace:*",
-    "@understudy3d/viewer": "workspace:*",
+    "@cuep3d/manifest": "workspace:*",
+    "@cuep3d/stage": "workspace:*",
+    "@cuep3d/viewer": "workspace:*",
     "three": "^0.171.0"
   },
   "devDependencies": {

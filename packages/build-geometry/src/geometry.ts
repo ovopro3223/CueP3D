@@ -1,7 +1,7 @@
 import type { Document } from '@gltf-transform/core';
 import { Primitive } from '@gltf-transform/core';
 import { getBounds } from '@gltf-transform/functions';
-import type { Vec3 } from '@understudy3d/manifest';
+import type { Vec3 } from '@cuep3d/manifest';
 
 /**
  * Bounding sphere approximated from the AABB: centre is the box centre,

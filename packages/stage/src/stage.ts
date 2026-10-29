@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import type { StageParams } from '@understudy3d/manifest';
+import type { StageParams } from '@cuep3d/manifest';
 import { cameraPositionForView } from './math.js';
 
 /**

@@ -2,16 +2,16 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { createStage } from '@understudy3d/stage';
-import type { Stage } from '@understudy3d/stage';
-import type { StageParams } from '@understudy3d/manifest';
+import { createStage } from '@cuep3d/stage';
+import type { Stage } from '@cuep3d/stage';
+import type { StageParams } from '@cuep3d/manifest';
 
 /**
  * Loaded into headless Chromium by packages/build-proxy's Node orchestrator.
  * Bundled standalone with esbuild (see scripts/build-page.mjs) — this file
  * never runs under Node and must not import anything Node-only.
  */
-interface UnderstudyRender {
+interface CueP3DRender {
   load(url: string): Promise<void>;
   setView(azimuthRad: number, elevationRad: number): void;
   snapshot(): Promise<string>; // base64-encoded PNG bytes
@@ -19,9 +19,9 @@ interface UnderstudyRender {
 
 declare global {
   interface Window {
-    __understudyRender?: UnderstudyRender;
-    __understudyPageReady?: boolean;
-    __understudyPageError?: string;
+    __cuep3dRender?: CueP3DRender;
+    __cuep3dPageReady?: boolean;
+    __cuep3dPageError?: string;
   }
 }
 
@@ -117,11 +117,11 @@ async function main(): Promise<void> {
     return canvasToPngBase64(canvas);
   }
 
-  window.__understudyRender = { load, setView, snapshot };
-  window.__understudyPageReady = true;
+  window.__cuep3dRender = { load, setView, snapshot };
+  window.__cuep3dPageReady = true;
 }
 
 main().catch((error: unknown) => {
-  window.__understudyPageError =
+  window.__cuep3dPageError =
     error instanceof Error ? (error.stack ?? error.message) : String(error);
 });

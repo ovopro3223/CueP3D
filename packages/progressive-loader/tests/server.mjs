@@ -3,7 +3,7 @@
  * Static server + esbuild bundle for the Playwright test harness. Serves:
  *   /                    -> index.html (loads the bundled harness)
  *   /harness.js          -> esbuild bundle of tests/harness.ts (bundles
- *                           three, @understudy3d/stage, @understudy3d/manifest
+ *                           three, @cuep3d/stage, @cuep3d/manifest
  *                           and this package's own src/ in one IIFE)
  *   /basis/*              -> three's own Basis Universal transcoder (ships
  *                           in three/examples/jsm/libs/basis, same files

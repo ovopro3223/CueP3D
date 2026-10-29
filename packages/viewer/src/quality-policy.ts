@@ -1,4 +1,4 @@
-import type { ProxyVariant, Tier } from '@understudy3d/manifest';
+import type { ProxyVariant, Tier } from '@cuep3d/manifest';
 
 /**
  * QualityPolicy: a pure function from explicit, overridable inputs to a
@@ -42,7 +42,7 @@ export interface QualityPolicyDecision {
   maxTier: TierId;
   downloadMode: DownloadMode;
   /**
-   * Frame-prefetch radius hint. NOT an LRU size: @understudy3d/proxy-player's
+   * Frame-prefetch radius hint. NOT an LRU size: @cuep3d/proxy-player's
    * `createProxyPlayer(variant, baseUrl)` takes no cache-size option (frozen
    * §5.4 signature) — its internal LRU is a fixed default. This budget is
    * used by the viewer itself as the `radius` argument to `player.prefetch()`

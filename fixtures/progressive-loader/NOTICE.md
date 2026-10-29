@@ -20,7 +20,7 @@ repo already trusts and ships (`three`, MIT license) instead.
 
 License: three.js is MIT-licensed (see its `LICENSE`); this file is used here
 only as an internal Vitest/Playwright test fixture for
-`@understudy3d/progressive-loader`, not redistributed as part of the published
+`@cuep3d/progressive-loader`, not redistributed as part of the published
 package or any demo/sample asset.
 
 Used by `scripts/make-progressive-loader-fixture.mjs` to build

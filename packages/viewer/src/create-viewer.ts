@@ -6,18 +6,14 @@ import {
   type Manifest,
   type ProxyVariant,
   type Tier,
-} from '@understudy3d/manifest';
-import { createStage, degToRad, type Stage } from '@understudy3d/stage';
-import {
-  selectProxyVariant,
-  createProxyPlayer,
-  type ProxyPlayer,
-} from '@understudy3d/proxy-player';
+} from '@cuep3d/manifest';
+import { createStage, degToRad, type Stage } from '@cuep3d/stage';
+import { selectProxyVariant, createProxyPlayer, type ProxyPlayer } from '@cuep3d/proxy-player';
 import {
   createProgressiveLoader,
   disposeObject,
   type ProgressiveLoader,
-} from '@understudy3d/progressive-loader';
+} from '@cuep3d/progressive-loader';
 import {
   chooseQuality,
   classifyDeviceTier,
@@ -158,7 +154,7 @@ class ViewerImpl extends EventTarget implements Viewer {
     const snapshot = this.metricsTracker.snapshot();
     this.dispatchEvent(new CustomEvent<MetricsEventDetail>('metrics', { detail: snapshot }));
     if (this.options.debug && typeof window !== 'undefined') {
-      (window as unknown as Record<string, unknown>).__understudyMetrics = snapshot;
+      (window as unknown as Record<string, unknown>).__cuep3dMetrics = snapshot;
     }
   }
 
@@ -268,12 +264,12 @@ class ViewerImpl extends EventTarget implements Viewer {
     const stage = createStage(renderer, manifest.stage);
     this.stage = stage;
 
-    // Debug-only introspection hook (parallel to `window.__understudyMetrics`,
+    // Debug-only introspection hook (parallel to `window.__cuep3dMetrics`,
     // §5.6 point 9) — not part of the frozen Viewer surface, used by this
     // package's own Playwright tests (e.g. `renderer.info.memory` for the
     // dispose/leak test) and available to the bench under the same flag.
     if (this.options.debug && typeof window !== 'undefined') {
-      (window as unknown as Record<string, unknown>).__understudyDebug = { renderer, stage };
+      (window as unknown as Record<string, unknown>).__cuep3dDebug = { renderer, stage };
     }
 
     const applySize = (): void => {

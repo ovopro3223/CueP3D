@@ -10,7 +10,7 @@ const REQUIRED_MODEL_SLUGS = ['avocado', 'boombox', 'waterbottle'] as const;
 
 export function assertDemoAssetsBuilt(): void {
   for (const slug of REQUIRED_MODEL_SLUGS) {
-    const manifestPath = path.join(DEMO_DIR, 'public', 'models', slug, 'understudy.json');
+    const manifestPath = path.join(DEMO_DIR, 'public', 'models', slug, 'cuep3d.json');
     if (!existsSync(manifestPath)) {
       throw new Error(
         `bench: missing ${manifestPath}. From the repo root, run "pnpm run fetch-samples" ` +
@@ -35,14 +35,14 @@ export interface DemoServer {
  * Windows shell/`.cmd`-resolution entirely.
  *
  * Base path is forced to "/" (instead of apps/demo/vite.config.ts's GitHub
- * Pages default, "/understudy/") by setting UNDERSTUDY_DEMO_BASE before
+ * Pages default, "/cuep3d/") by setting CUEP3D_DEMO_BASE before
  * that config file is evaluated, purely so bench URLs stay simple
  * (`/?model=…`). This has no effect on the real Pages deploy, which sets
  * its own value for that env var in CI.
  */
 export async function startDemoServer(port: number): Promise<DemoServer> {
   assertDemoAssetsBuilt();
-  process.env.UNDERSTUDY_DEMO_BASE = process.env.UNDERSTUDY_DEMO_BASE ?? '/';
+  process.env.CUEP3D_DEMO_BASE = process.env.CUEP3D_DEMO_BASE ?? '/';
   const configFile = path.join(DEMO_DIR, 'vite.config.ts');
   const { build, preview } = await import('vite');
   await build({ root: DEMO_DIR, configFile, logLevel: 'warn' });

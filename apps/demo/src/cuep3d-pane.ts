@@ -1,4 +1,4 @@
-import type { Viewer } from '@understudy3d/viewer';
+import type { Viewer } from '@cuep3d/viewer';
 import { formatBytes, formatMs, renderMetricsStrip } from './metrics.js';
 import type { BenchMetricsSnapshot } from './bench-hook.js';
 
@@ -10,7 +10,7 @@ import type { BenchMetricsSnapshot } from './bench-hook.js';
  * rather than taking down the whole page.
  */
 
-export interface UnderstudyPaneOptions {
+export interface CueP3DPaneOptions {
   readonly container: HTMLElement;
   readonly metricsEl: HTMLDListElement;
   readonly baseUrl: string;
@@ -20,7 +20,7 @@ export interface UnderstudyPaneOptions {
   readonly onUpdate?: ((state: string, metrics: BenchMetricsSnapshot) => void) | undefined;
 }
 
-export interface UnderstudyPaneHandle {
+export interface CueP3DPaneHandle {
   setModel(baseUrl: string): void;
   setPolicyOverrides(overrides: object | null): void;
   reload(): void;
@@ -28,16 +28,16 @@ export interface UnderstudyPaneHandle {
 }
 
 // The custom element is assumed to implement the Viewer interface directly
-// (§5.6: "<understudy-viewer> wraps createViewer"). `policy` as a settable
+// (§5.6: "<cuep3d-viewer> wraps createViewer"). `policy` as a settable
 // JS property (rather than an attribute) is this file's own assumption
 // bridging a gap the frozen API leaves open for the element form — see the
 // open question in docs/reports/P7a-report.md.
-type UnderstudyViewerElement = HTMLElement &
+type CueP3DViewerElement = HTMLElement &
   Viewer & {
     policy?: object | undefined;
   };
 
-function noopHandle(): UnderstudyPaneHandle {
+function noopHandle(): CueP3DPaneHandle {
   return {
     setModel(): void {},
     setPolicyOverrides(): void {},
@@ -46,9 +46,7 @@ function noopHandle(): UnderstudyPaneHandle {
   };
 }
 
-export async function mountUnderstudyPane(
-  options: UnderstudyPaneOptions,
-): Promise<UnderstudyPaneHandle> {
+export async function mountCueP3DPane(options: CueP3DPaneOptions): Promise<CueP3DPaneHandle> {
   const { container, metricsEl, background, reducedMotion, onUpdate } = options;
   let baseUrl = options.baseUrl;
   let policyOverrides = options.policyOverrides;
@@ -74,15 +72,15 @@ export async function mountUnderstudyPane(
     // A literal specifier (not @vite-ignore'd) so Vite resolves and bundles
     // it normally, both in dev and in the production build — the same way
     // any other real dependency is imported.
-    await import('@understudy3d/viewer');
+    await import('@cuep3d/viewer');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     showBlocked(message);
     return noopHandle();
   }
 
-  const el = document.createElement('understudy-viewer') as UnderstudyViewerElement;
-  el.setAttribute('aria-label', 'Understudy pane 3D view');
+  const el = document.createElement('cuep3d-viewer') as CueP3DViewerElement;
+  el.setAttribute('aria-label', 'CueP3D pane 3D view');
 
   function renderMetricsFromViewer(): void {
     renderMetricsStrip(metricsEl, { label: 'State', value: el.state }, [
@@ -113,8 +111,8 @@ export async function mountUnderstudyPane(
   function mount(forceReload: boolean): void {
     container.replaceChildren(el);
     const src = forceReload
-      ? `${baseUrl}understudy.json?t=${String(Date.now())}`
-      : `${baseUrl}understudy.json`;
+      ? `${baseUrl}cuep3d.json?t=${String(Date.now())}`
+      : `${baseUrl}cuep3d.json`;
     el.policy = { ...policyOverrides, reducedMotion };
     el.setAttribute('background', background);
     el.setAttribute('src', src);

@@ -10,13 +10,13 @@ export {};
 
 declare global {
   interface Window {
-    __understudyRender?: {
+    __cuep3dRender?: {
       load(url: string): Promise<void>;
       setView(azimuthRad: number, elevationRad: number): void;
       snapshot(): Promise<string>;
     };
-    __understudyPageReady?: boolean;
-    __understudyPageError?: string;
+    __cuep3dPageReady?: boolean;
+    __cuep3dPageError?: string;
   }
 
   var window: Window & typeof globalThis;

@@ -61,7 +61,7 @@ export async function encodeKtx2(options: EncodeKtx2Options): Promise<Uint8Array
     );
   }
 
-  const tmpDir = await mkdtemp(path.join(tmpdir(), 'understudy-ktx2-'));
+  const tmpDir = await mkdtemp(path.join(tmpdir(), 'cuep3d-ktx2-'));
   const inPath = path.join(tmpDir, `in.${ext}`);
   const outPath = path.join(tmpDir, 'out.ktx2');
 

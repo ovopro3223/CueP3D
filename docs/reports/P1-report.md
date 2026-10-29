@@ -20,15 +20,15 @@ Texture mode selection (`textures.ts`): `listTextureSlots(texture)` detects `nor
 ```bash
 pnpm install
 pnpm run fetch-samples                         # Avocado/BoomBox/WaterBottle.glb
-pnpm -F @understudy3d/build-geometry build
-pnpm -F @understudy3d/build-geometry typecheck # clean
-pnpm -F @understudy3d/build-geometry test      # 12 passed, 9 skipped (toktx not installed)
+pnpm -F @cuep3d/build-geometry build
+pnpm -F @cuep3d/build-geometry typecheck # clean
+pnpm -F @cuep3d/build-geometry test      # 12 passed, 9 skipped (toktx not installed)
 pnpm run lint                                  # clean
 pnpm run format                                # clean for this package (see "repo-wide" note below)
 ```
 
 ```ts
-import { buildGeometry } from '@understudy3d/build-geometry';
+import { buildGeometry } from '@cuep3d/build-geometry';
 const result = await buildGeometry('samples/Avocado.glb', { outDir: 'out/avocado' });
 ```
 
@@ -63,7 +63,7 @@ Avocado's L0 (`ratio=0.08, error=0.01`) only reaches 212/682 = 31% of triangles,
 
 ## Tests
 
-`pnpm -F @understudy3d/build-geometry test`: **12 passed, 9 skipped**, 0 failed.
+`pnpm -F @cuep3d/build-geometry test`: **12 passed, 9 skipped**, 0 failed.
 
 - `geometry.test.ts` (6): `computeBounds`/`countTriangles` against synthetic documents — no samples, no toktx.
 - `textures.test.ts` (5): `isNonColorTexture`/`roundDownToMultipleOf4` pure-logic cases.

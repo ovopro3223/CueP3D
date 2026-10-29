@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ProxyVariant } from '@understudy3d/manifest';
+import type { ProxyVariant } from '@cuep3d/manifest';
 import {
   chooseQuality,
   classifyDeviceTier,

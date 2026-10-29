@@ -1,4 +1,4 @@
-import { frameIndexForAzimuth } from '@understudy3d/stage';
+import { frameIndexForAzimuth } from '@cuep3d/stage';
 import { azimuthDeltaForPointerDelta, isFastDrag, type DragSample } from './scrub.js';
 
 export interface ScrubControllerOptions {

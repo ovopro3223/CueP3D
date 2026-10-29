@@ -1,4 +1,4 @@
-# Understudy — Implementation plan
+# CueP3D — Implementation plan
 
 Companion to `01-design.md`. One brief per pipeline in `docs/briefs/`. Agents: Claude Sonnet (5 for P4 and P6, 4.6 acceptable for the rest), one agent per package, per D-011.
 
@@ -44,8 +44,8 @@ Calendar (owner has > 1 month): Week 1 — Wave 0 and Wave 1 start. Week 2 — W
 
 ## Definition of done (v1 release)
 
-- `pnpm understudy build samples/Avocado.glb -o out/avocado` produces a valid manifest, three tiers, AV1 + VP9 + AVIF proxies; `assert-free-codecs` passes.
-- Demo on GitHub Pages shows plain vs Understudy side by side with live metrics for three models.
+- `pnpm cuep3d build samples/Avocado.glb -o out/avocado` produces a valid manifest, three tiers, AV1 + VP9 + AVIF proxies; `assert-free-codecs` passes.
+- Demo on GitHub Pages shows plain vs CueP3D side by side with live metrics for three models.
 - `BENCHMARKS.md` shows TTFV ≤ 500 ms and TTI ≤ 3 s on `3g-fast` for all three models, with plain-mode numbers alongside.
 - Handoff pixel-diff test and long-task test pass in CI.
 - README contains: problem, demo GIF, how it works diagram, quick start, codec policy (accurate), prior art, limitations, roadmap, licenses of sample assets.

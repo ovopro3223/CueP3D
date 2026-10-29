@@ -4,7 +4,7 @@ Status: done. 2026-10-29. By: Fable (direct integration work, not a dispatched a
 
 ## What was built
 
-`packages/cli/src/build-command.ts`'s `runBuild` now really runs the pipeline: `buildGeometry` (P1) → `renderProxyFrames` (P2, fed P1's `model.norm.glb`) → `encodeProxy` (P3, fed P2's rendered frames) → assembles and writes a schema-validated `understudy.json`. `NotImplementedError` and its references in `bin.ts`/`index.ts` are gone; CLI errors now print `understudy build failed: <message>` and exit 1 instead of an uncaught stack trace.
+`packages/cli/src/build-command.ts`'s `runBuild` now really runs the pipeline: `buildGeometry` (P1) → `renderProxyFrames` (P2, fed P1's `model.norm.glb`) → `encodeProxy` (P3, fed P2's rendered frames) → assembles and writes a schema-validated `cuep3d.json`. `NotImplementedError` and its references in `bin.ts`/`index.ts` are gone; CLI errors now print `cuep3d build failed: <message>` and exit 1 instead of an uncaught stack trace.
 
 Output layout: P1 and P3 write directly into `outDir` (tier `.glb`s, proxy videos/AVIF sequences — their `url` fields are basenames, resolved relative to the manifest), since that's where the manifest needs them. P2's `frames/NNN.png` + `camera.json` are build-time-only inputs to P3 and go in `<outDir>/.proxy-source/`, never referenced by the manifest.
 
@@ -19,7 +19,7 @@ Output layout: P1 and P3 write directly into `outDir` (tier `.glb`s, proxy video
 node packages/cli/dist/bin.js build samples/Avocado.glb -o out/avocado --frames 72
 ```
 
-Ran for real: 72 orbit frames rendered (SwiftShader), encoder auto-selected `nvenc` (this machine's GPU), full tier set and proxy variant set produced, `understudy.json` written and passed `validateManifest`. Output inspected directly: `model.L0.glb` 26.7KB / `L1` 157KB / `L2` 11.2MB (triangles 212/365/682), `proxy-1024.av1.mp4` 384KB, `proxy-512.av1.mp4` 150KB, `proxy-512.vp9.mp4` 89KB, `frames-512/*.avif` totaling 320KB. `node scripts/assert-free-codecs.mjs out/avocado` clean.
+Ran for real: 72 orbit frames rendered (SwiftShader), encoder auto-selected `nvenc` (this machine's GPU), full tier set and proxy variant set produced, `cuep3d.json` written and passed `validateManifest`. Output inspected directly: `model.L0.glb` 26.7KB / `L1` 157KB / `L2` 11.2MB (triangles 212/365/682), `proxy-1024.av1.mp4` 384KB, `proxy-512.av1.mp4` 150KB, `proxy-512.vp9.mp4` 89KB, `frames-512/*.avif` totaling 320KB. `node scripts/assert-free-codecs.mjs out/avocado` clean.
 
 **Noted, not a bug**: `model.L2.glb` (11.2MB) is larger than the original `Avocado.glb` download (8.1MB). This is expected GPU-texture-format behavior — KTX2/UASTC trades file size for zero-CPU-decode GPU readiness and isn't as space-efficient as source JPEG at the same visual quality. L2 is the last tier loaded (after L0/L1 already show something), so this doesn't affect the project's actual speed goal, but it's worth knowing if someone's first reaction to the numbers is "why did compression make it bigger."
 

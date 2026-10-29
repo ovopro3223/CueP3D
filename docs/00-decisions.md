@@ -7,9 +7,9 @@ Decisions are recorded here when made. Later entries override earlier ones. Each
 Open-source library + build pipeline that makes a 3D model appear on a web page within a few hundred milliseconds and hands off seamlessly to the real, progressively streamed glTF. Published on GitHub as a portfolio piece demonstrating systems/architecture thinking and as a genuinely useful tool.
 Rules out: anything that only works as a demo; anything tied to the owner's client project (Atlas). This repo shares no code or assets with Atlas.
 
-## D-002 — Working name: Understudy (2026-10-29)
+## D-002 — Final name: CueP3D (2026-10-29)
 
-Theatre metaphor: the understudy (a tiny hardware-decoded video) performs until the lead (the live 3D model) is ready, then steps aside. Rename is allowed at any time before the first public release; npm scope `@understudy3d/*`.
+Working name was "Understudy" (same theatre metaphor: a stand-in performs until the lead is ready, then steps aside) through Wave 0–8. Finalized as **CueP3D** once the owner registered the GitHub repo (`ovopro3223/CueP3D-`) — "Cue" (the instant stand-in that cues up the real thing) + "P3D" (Progressive 3D, what it hands off to). npm scope `@cuep3d/*`. All source, docs and package names renamed accordingly; no behavior change.
 
 ## D-003 — Scope v1: object-centric content (2026-10-29)
 
@@ -56,7 +56,7 @@ Rules out: re-chasing <2% proxy-vs-live as if it were achievable by tuning; trea
 
 ## D-005e — TTFV is viewer-internal; the demo's bundle size is a separate, tracked gap (2026-10-29)
 
-P7b (bench) ran the real §10 benchmark sweep (3 presets × 3 models × 2 modes, real Chromium CDP throttling, real built models — `BENCHMARKS.md`) and surfaced a genuine ambiguity in §3's TTFV goal: `window.__understudyMetrics`' `ttfv` is timed from `createViewer()`'s own construction, which excludes however long the hosting page's own JS took to fetch/parse/execute first. On `3g-fast`, viewer-internal TTFV is 593–605 ms (19–21% over the 500 ms goal); wall-clock TTFV (timed from navigation start — what a real visitor's clock shows) is ~2750 ms, because `apps/demo`'s own bundle (~300 KB gzip, not code-split — `@understudy3d/viewer` is a second dynamically-imported chunk on top of the ~134 KB main one) takes most of a second to download alone on 1.6 Mbps before anything can start.
+P7b (bench) ran the real §10 benchmark sweep (3 presets × 3 models × 2 modes, real Chromium CDP throttling, real built models — `BENCHMARKS.md`) and surfaced a genuine ambiguity in §3's TTFV goal: `window.__cuep3dMetrics`' `ttfv` is timed from `createViewer()`'s own construction, which excludes however long the hosting page's own JS took to fetch/parse/execute first. On `3g-fast`, viewer-internal TTFV is 593–605 ms (19–21% over the 500 ms goal); wall-clock TTFV (timed from navigation start — what a real visitor's clock shows) is ~2750 ms, because `apps/demo`'s own bundle (~300 KB gzip, not code-split — `@cuep3d/viewer` is a second dynamically-imported chunk on top of the ~134 KB main one) takes most of a second to download alone on 1.6 Mbps before anything can start.
 Decision: TTFV/TTI are and remain viewer-internal — a boundary around what this project's own mechanism controls, the same reasoning as any framework distinguishing its own hydration/render metrics from a host page's total bundle weight. The 500 ms goal itself is **not** relaxed to fit the measured 593–605 ms (same discipline as D-005d: report the real number, don't move the goalpost) — it stays a real, currently-missed target. Both numbers are reported in `BENCHMARKS.md` (`TTFV`/`TTI` vs `Wall TTFV`/`Wall TTI`) so neither reading is hidden.
 Why: a demo app's own unoptimized bundle is a legitimate, separately-fixable integration concern (code-splitting, a smaller initial chunk), not evidence the proxy-player/handoff mechanism itself is slow — conflating the two would misattribute the gap to the wrong package and make the real number impossible to act on.
 Rules out: quietly widening the 500 ms budget to make current numbers pass; treating `apps/demo`'s bundle size as acceptable-as-is. Added to `docs/roadmap.md` (P8): code-split `apps/demo` so the initial chunk needed before first paint is materially smaller, and re-measure.
@@ -67,7 +67,7 @@ pnpm workspaces. Each build step and each client module is its own package with 
 
 ## D-007 — Proxy frames are rendered by the viewer's own stage code (2026-10-29)
 
-The build pipeline renders orbit frames in headless Chromium using the _same_ `@understudy3d/stage` package (camera rig, environment, tone mapping) the live viewer uses. This is what makes the handoff invisible: the proxy frame and the first live frame are produced by identical code at identical camera parameters.
+The build pipeline renders orbit frames in headless Chromium using the _same_ `@cuep3d/stage` package (camera rig, environment, tone mapping) the live viewer uses. This is what makes the handoff invisible: the proxy frame and the first live frame are produced by identical code at identical camera parameters.
 Rules out: Blender/offline renderers for the proxy (their look would never match the live three.js render).
 
 ## D-008 — Self-contained .glb per quality tier (2026-10-29)

@@ -64,7 +64,7 @@ describe.skipIf(!toktxAvailable)(
     let result: Awaited<ReturnType<typeof buildGeometry>>;
 
     beforeAll(async () => {
-      outDir = await makeTmpDir('understudy-build-geometry-avocado-');
+      outDir = await makeTmpDir('cuep3d-build-geometry-avocado-');
       result = await buildGeometry(path.join(samplesDir, 'Avocado.glb'), { outDir });
     }, 180_000);
 
@@ -133,7 +133,7 @@ describe.skipIf(!toktxAvailable)(
     let result: Awaited<ReturnType<typeof buildGeometry>>;
 
     beforeAll(async () => {
-      outDir = await makeTmpDir('understudy-build-geometry-waterbottle-');
+      outDir = await makeTmpDir('cuep3d-build-geometry-waterbottle-');
       result = await buildGeometry(path.join(samplesDir, 'WaterBottle.glb'), { outDir });
     }, 180_000);
 
@@ -181,12 +181,12 @@ describe.skipIf(!toktxAvailable)(
       const glbPath = path.join(samplesDir, 'Avocado.glb');
       const sourceDoc = await io.read(glbPath);
 
-      const gltfDir = await makeTmpDir('understudy-build-geometry-gltf-src-');
+      const gltfDir = await makeTmpDir('cuep3d-build-geometry-gltf-src-');
       const gltfPath = path.join(gltfDir, 'model.gltf');
       await io.write(gltfPath, sourceDoc);
 
-      const outGlb = await makeTmpDir('understudy-build-geometry-from-glb-');
-      const outGltf = await makeTmpDir('understudy-build-geometry-from-gltf-');
+      const outGlb = await makeTmpDir('cuep3d-build-geometry-from-glb-');
+      const outGltf = await makeTmpDir('cuep3d-build-geometry-from-gltf-');
 
       try {
         const fromGlb = await buildGeometry(glbPath, { outDir: outGlb });

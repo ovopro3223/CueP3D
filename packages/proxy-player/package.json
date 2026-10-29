@@ -1,5 +1,5 @@
 {
-  "name": "@understudy3d/proxy-player",
+  "name": "@cuep3d/proxy-player",
   "version": "0.1.0",
   "description": "Decodes a proxy variant (AV1/VP9 MP4 via WebCodecs, <video>, or AVIF sequence) and makes any frame index available as an image, as early as the network allows.",
   "license": "MIT",
@@ -24,7 +24,7 @@
     "test:e2e:headed": "pnpm run build && playwright test -c e2e/playwright.config.ts --headed"
   },
   "dependencies": {
-    "@understudy3d/manifest": "workspace:*",
+    "@cuep3d/manifest": "workspace:*",
     "mp4box": "^2.5.0"
   },
   "devDependencies": {

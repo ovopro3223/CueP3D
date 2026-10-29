@@ -1,7 +1,7 @@
 {
-  "name": "@understudy3d/build-proxy",
+  "name": "@cuep3d/build-proxy",
   "version": "0.1.0",
-  "description": "Renders orbit-video source frames for a model in headless Chromium using @understudy3d/stage, so build-time frames match the live viewer pixel-for-pixel.",
+  "description": "Renders orbit-video source frames for a model in headless Chromium using @cuep3d/stage, so build-time frames match the live viewer pixel-for-pixel.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -21,8 +21,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@understudy3d/manifest": "workspace:*",
-    "@understudy3d/stage": "workspace:*",
+    "@cuep3d/manifest": "workspace:*",
+    "@cuep3d/stage": "workspace:*",
     "puppeteer": "^23.11.1",
     "three": "^0.171.0"
   },

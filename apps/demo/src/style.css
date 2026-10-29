@@ -177,13 +177,13 @@ input:focus-visible,
   height: 100%;
 }
 
-/* <understudy-viewer> defaults to display:inline like any unstyled custom
+/* <cuep3d-viewer> defaults to display:inline like any unstyled custom
    element, which never gives it (or create-viewer.ts's clientWidth/
    clientHeight reads on it, since it's the "container" createViewer
    receives) a real size — the canvas it creates internally was
    collapsing to 1x1px. Verified directly: state reached 'settled' with
    correct metrics the whole time, only the visible canvas was broken. */
-.viewport understudy-viewer {
+.viewport cuep3d-viewer {
   display: block;
   width: 100%;
   height: 100%;

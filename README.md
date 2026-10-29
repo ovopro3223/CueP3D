@@ -1,12 +1,12 @@
-# Understudy
+# CueP3D
 
 **A 3D model on screen in a few hundred milliseconds — then a seamless handoff to the real thing.**
 
 > Status: working end to end — build pipeline, viewer, demo and real benchmarks all real, all in this repo. Not published to npm yet; build it from source (Quick start below). See `docs/02-plan.md` for how it was built and `BENCHMARKS.md` for the numbers behind the claims below.
 
-![Understudy demo: a proxy frame appears almost instantly, the visitor drags to orbit it, then it hands off to the live, interactive 3D model](docs/media/demo.gif)
+![CueP3D demo: a proxy frame appears almost instantly, the visitor drags to orbit it, then it hands off to the live, interactive 3D model](docs/media/demo.gif)
 
-Loading a glTF on the web means staring at a spinner until every byte of geometry and texture has arrived, parsed, hit the GPU and compiled its shaders. Video solved this a decade ago with adaptive streaming. Understudy brings the same idea to 3D: every model gets a tiny, hardware-decoded **AV1 orbit video** rendered by the viewer's own camera rig. It shows up almost instantly, you can already drag to rotate it, and while you do, the real model streams in as a quality ladder (L0 → L1 → L2). When the first tier is loaded, shader-compiled and rendered once off-screen, the viewer sets the live camera to the exact angle you scrubbed to and cross-fades. Nothing jumps.
+Loading a glTF on the web means staring at a spinner until every byte of geometry and texture has arrived, parsed, hit the GPU and compiled its shaders. Video solved this a decade ago with adaptive streaming. CueP3D brings the same idea to 3D: every model gets a tiny, hardware-decoded **AV1 orbit video** rendered by the viewer's own camera rig. It shows up almost instantly, you can already drag to rotate it, and while you do, the real model streams in as a quality ladder (L0 → L1 → L2). When the first tier is loaded, shader-compiled and rendered once off-screen, the viewer sets the live camera to the exact angle you scrubbed to and cross-fades. Nothing jumps.
 
 ```
 page load ─► first AV1 keyframe ─► visible + draggable ─► L0 glTF warm ─► cross-fade ─► live 3D ─► L1 ─► L2
@@ -15,7 +15,7 @@ page load ─► first AV1 keyframe ─► visible + draggable ─► L0 glTF wa
 
 **Real measured numbers** (median of 3 runs, real Chromium network throttling, real built models — full table in `BENCHMARKS.md`):
 
-| Preset (download / RTT)     | Plain `GLTFLoader` | Understudy | Speedup     |
+| Preset (download / RTT)     | Plain `GLTFLoader` | CueP3D     | Speedup     |
 | --------------------------- | ------------------ | ---------- | ----------- |
 | wifi (30 Mbps / 20 ms)      | 2.5–3.2 s          | 464–479 ms | ~5–6×       |
 | 4g (9 Mbps / 60 ms)         | 7.6–9.9 s          | 498–547 ms | ~15–18×     |
@@ -26,12 +26,12 @@ Two things worth being upfront about, in the spirit of this project's own rigor 
 ## Why this exists
 
 - **Time-to-first-visual**, not file size, is what makes 3D on the web feel slow. Compression (Draco, meshopt, KTX2) is a solved problem; the blank wait is not.
-- The stand-in is rendered by the **same code** that renders the live model (`@understudy3d/stage`), so the handoff is pixel-aligned by construction rather than by luck.
+- The stand-in is rendered by the **same code** that renders the live model (`@cuep3d/stage`), so the handoff is pixel-aligned by construction rather than by luck.
 - Everything is **free and self-hosted**: a Node CLI produces the tiers, frames and videos; a web component plays them. No cloud processing, no paid CDN.
 
 ## Codec policy — why AV1, and why there is no H.264 anywhere in this repository
 
-Understudy encodes its stand-in videos with **AV1** and ships **no H.264 (AVC) or H.265 (HEVC) encoder, decoder, flag, fixture or test file**. A build step (`scripts/assert-free-codecs.mjs`) probes every produced media file and fails the build if it is anything other than AV1 or VP9.
+CueP3D encodes its stand-in videos with **AV1** and ships **no H.264 (AVC) or H.265 (HEVC) encoder, decoder, flag, fixture or test file**. A build step (`scripts/assert-free-codecs.mjs`) probes every produced media file and fails the build if it is anything other than AV1 or VP9.
 
 The reasons, stated carefully:
 
@@ -46,28 +46,25 @@ The reasons, stated carefully:
 Not published to npm — clone and build it. Prerequisites (all free): Node 20+, pnpm, `ffmpeg`/`ffprobe` built with `libaom-av1` (SVT-AV1 or NVENC are used automatically when present), and `toktx` from [KTX-Software](https://github.com/KhronosGroup/KTX-Software) for KTX2 textures.
 
 ```bash
-git clone https://github.com/<owner>/understudy.git && cd understudy
+git clone https://github.com/ovopro3223/CueP3D- && cd CueP3D-
 pnpm install
 pnpm run build
-pnpm understudy build path/to/model.glb -o public/models/model
+pnpm cuep3d build path/to/model.glb -o public/models/model
 ```
 
 `packages/viewer/dist/index.js` is a real ESM module — point a bundler (or an import map) at it from your own app:
 
 ```html
 <script type="importmap">
-  { "imports": { "@understudy3d/viewer": "/path/to/packages/viewer/dist/index.js" } }
+  { "imports": { "@cuep3d/viewer": "/path/to/packages/viewer/dist/index.js" } }
 </script>
 <script type="module">
-  import '@understudy3d/viewer'; // registers <understudy-viewer>, no further setup
+  import '@cuep3d/viewer'; // registers <cuep3d-viewer>, no further setup
 </script>
-<understudy-viewer
-  src="/models/model/understudy.json"
-  style="width:100%;aspect-ratio:1"
-></understudy-viewer>
+<cuep3d-viewer src="/models/model/cuep3d.json" style="width:100%;aspect-ratio:1"></cuep3d-viewer>
 ```
 
-The build writes `understudy.json` (manifest), `model.L0.glb`/`L1`/`L2` (meshopt + KTX2), `proxy-1024.av1.mp4`, `proxy-512.av1.mp4`, `proxy-512.vp9.mp4`, and `frames-512/*.avif`. See `apps/demo` for a complete, working example (it's the app the GIF above was recorded from): `pnpm run fetch-samples && pnpm run demo:assets && pnpm --filter @understudy3d/demo run dev`.
+The build writes `cuep3d.json` (manifest), `model.L0.glb`/`L1`/`L2` (meshopt + KTX2), `proxy-1024.av1.mp4`, `proxy-512.av1.mp4`, `proxy-512.vp9.mp4`, and `frames-512/*.avif`. See `apps/demo` for a complete, working example (it's the app the GIF above was recorded from): `pnpm run fetch-samples && pnpm run demo:assets && pnpm --filter @cuep3d/demo run dev`.
 
 ## How it works
 
@@ -88,11 +85,11 @@ Safari without AV1 hardware (Intel Macs, M1/M2, pre-15-Pro iPhones) and any brow
 
 ## Prior art
 
-Progressive LOD streaming for three.js exists in [`@needle-tools/gltf-progressive`](https://www.npmjs.com/package/@needle-tools/gltf-progressive) (LODs produced by Needle's hosted service); `<model-viewer>` offers a static `poster`; Cesium 3D Tiles streams massive environments; QuickTime VR object movies and e-commerce 360° spins scrub pre-rendered frames; Unreal Pixel Streaming renders interactive video on a server GPU. Understudy's contribution is the combination: a scrubbable, hardware-decoded stand-in produced by the viewer's own renderer, a manifest-driven quality ladder built with free local tools, and a camera-synchronized, stall-free handoff — as one self-hostable pipeline.
+Progressive LOD streaming for three.js exists in [`@needle-tools/gltf-progressive`](https://www.npmjs.com/package/@needle-tools/gltf-progressive) (LODs produced by Needle's hosted service); `<model-viewer>` offers a static `poster`; Cesium 3D Tiles streams massive environments; QuickTime VR object movies and e-commerce 360° spins scrub pre-rendered frames; Unreal Pixel Streaming renders interactive video on a server GPU. CueP3D's contribution is the combination: a scrubbable, hardware-decoded stand-in produced by the viewer's own renderer, a manifest-driven quality ladder built with free local tools, and a camera-synchronized, stall-free handoff — as one self-hostable pipeline.
 
 ## Limitations (v1)
 
-Object-centric content only (orbit camera). Single elevation ring. No transparent-background video. No animation playback inside the stand-in. `<understudy-viewer>`'s `policy`/`debug` options are JS-API-only (not element attributes). The demo app's own JS bundle isn't code-split, so its wall-clock TTFV is higher than the viewer's own (see "Real measured numbers" above and D-005e). Full list: `docs/roadmap.md`.
+Object-centric content only (orbit camera). Single elevation ring. No transparent-background video. No animation playback inside the stand-in. `<cuep3d-viewer>`'s `policy`/`debug` options are JS-API-only (not element attributes). The demo app's own JS bundle isn't code-split, so its wall-clock TTFV is higher than the viewer's own (see "Real measured numbers" above and D-005e). Full list: `docs/roadmap.md`.
 
 ## Development
 

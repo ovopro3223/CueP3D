@@ -1,8 +1,8 @@
 {
-  "name": "@understudy3d/bench",
+  "name": "@cuep3d/bench",
   "private": true,
   "version": "0.1.0",
-  "description": "Network-throttled Playwright benchmarks comparing apps/demo's Plain and Understudy panes; writes BENCHMARKS.md and docs/media/demo.gif.",
+  "description": "Network-throttled Playwright benchmarks comparing apps/demo's Plain and CueP3D panes; writes BENCHMARKS.md and docs/media/demo.gif.",
   "license": "MIT",
   "type": "module",
   "scripts": {

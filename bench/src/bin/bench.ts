@@ -24,13 +24,13 @@ async function main(): Promise<void> {
   const violations = checkGoals(report);
   if (violations.length === 0) {
     console.log(
-      `[bench] goals met: understudy TTFV ≤ ${String(TTFV_GOAL_MS)}ms and TTI ≤ ${String(TTI_GOAL_MS)}ms ` +
+      `[bench] goals met: cuep3d TTFV ≤ ${String(TTFV_GOAL_MS)}ms and TTI ≤ ${String(TTI_GOAL_MS)}ms ` +
         'on 3g-fast for every model.',
     );
     return;
   }
 
-  console.error('[bench] goal violations (docs/01-design.md §3, 3g-fast, understudy mode):');
+  console.error('[bench] goal violations (docs/01-design.md §3, 3g-fast, cuep3d mode):');
   for (const violation of violations) {
     console.error(
       `  ${violation.modelSlug}: ${violation.metric} = ${String(violation.valueMs)}ms ` +

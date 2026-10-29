@@ -5,7 +5,7 @@ import { cloneDocument, meshopt, simplify } from '@gltf-transform/functions';
 import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
 import { Logger } from '@gltf-transform/core';
 import type { Document } from '@gltf-transform/core';
-import type { Tier } from '@understudy3d/manifest';
+import type { Tier } from '@cuep3d/manifest';
 
 import { createIO } from './gltf-io.js';
 import { computeBounds, countTriangles } from './geometry.js';

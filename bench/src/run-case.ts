@@ -5,10 +5,10 @@ import type { CaseResult, MetricsSnapshot, WallClockTimings } from './metrics-sn
 
 const TERMINAL_STATE: Record<BenchMode, string> = {
   plain: 'rendered',
-  understudy: 'settled',
+  cuep3d: 'settled',
 };
 
-// Both Plain and Understudy can end in a visible failure state rather than
+// Both Plain and CueP3D can end in a visible failure state rather than
 // hang — treated as a hard failure (thrown), not a silently-skipped row:
 // this project's testing culture is "run the real thing", and a case that
 // can't reach its terminal state is a real bug worth seeing, not noise to
@@ -17,7 +17,7 @@ const FAILURE_STATES = new Set(['error', 'blocked']);
 
 const POLL_INTERVAL_MS = 100;
 
-// Understudy's 'settled' state requires every tier (L0+L1+L2, each a
+// CueP3D's 'settled' state requires every tier (L0+L1+L2, each a
 // self-contained .glb per D-008) to finish downloading — at Avocado's sizes
 // that's roughly 11.8 MB total. At 3g-fast (1.6 Mbps ≈ 200 KB/s) that alone
 // is ~59 s; Plain's single original .glb (~8-10.6 MB) is a similar order of
@@ -65,8 +65,8 @@ export async function runCase(browser: Browser, options: RunCaseOptions): Promis
     let wallTti: number | undefined;
     while (Date.now() < deadline) {
       snapshot = await page.evaluate<PageSnapshot>(() => ({
-        state: window.__understudyState,
-        metrics: window.__understudyMetrics,
+        state: window.__cuep3dState,
+        metrics: window.__cuep3dMetrics,
       }));
       if (wallTtfv === undefined && snapshot.metrics?.ttfv !== undefined) {
         wallTtfv = Date.now() - navStart;
@@ -88,16 +88,14 @@ export async function runCase(browser: Browser, options: RunCaseOptions): Promis
     const label = `${model.slug}/${mode}/${preset.id}`;
     if (!snapshot.state) {
       throw new Error(
-        `bench: ${label} never set window.__understudyState within ${String(timeoutMs)}ms`,
+        `bench: ${label} never set window.__cuep3dState within ${String(timeoutMs)}ms`,
       );
     }
     if (snapshot.state !== terminal) {
       throw new Error(`bench: ${label} ended in state "${snapshot.state}", expected "${terminal}"`);
     }
     if (!snapshot.metrics) {
-      throw new Error(
-        `bench: ${label} reached "${terminal}" but window.__understudyMetrics is unset`,
-      );
+      throw new Error(`bench: ${label} reached "${terminal}" but window.__cuep3dMetrics is unset`);
     }
     return { state: snapshot.state, metrics: snapshot.metrics, wallClockMs };
   } finally {

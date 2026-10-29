@@ -1,5 +1,5 @@
 /**
- * Flag parsing for `understudy build`, per docs/01-design.md §7. Hand-rolled
+ * Flag parsing for `cuep3d build`, per docs/01-design.md §7. Hand-rolled
  * rather than pulling in an args library — the surface is tiny and fixed.
  */
 
@@ -16,7 +16,7 @@ export interface BuildArgs {
 
 export class BuildArgsError extends Error {}
 
-export const BUILD_HELP = `Usage: understudy build <model.glb> -o <outDir> [options]
+export const BUILD_HELP = `Usage: cuep3d build <model.glb> -o <outDir> [options]
 
 Options:
   -o, --out <dir>          Output directory (required)

@@ -24,7 +24,7 @@ Running `node scripts/assert-free-codecs.mjs <any dirs>` today reports 6 false-p
 violations, all inside these two files, because `checkSource()`'s `SOURCE_SCAN_ROOTS` includes
 `packages` unconditionally (regardless of the media-dir arguments passed on the command line, so
 this also fires during the real CI invocation `pnpm run assert-free-codecs -- fixtures
-/tmp/understudy-out`).
+/tmp/cuep3d-out`).
 
 Proposed fix (one line, same pattern already used for the script's own file):
 
@@ -52,7 +52,7 @@ does not need to wait for a wave boundary since it only widens an exclusion list
 
 ## Local workaround applied in this wave
 
-None needed for P3 itself — `pnpm -F @understudy3d/build-encode run test` passes cleanly, because
+None needed for P3 itself — `pnpm -F @cuep3d/build-encode run test` passes cleanly, because
 the package's own test (`codec-policy.test.ts`'s "source scan" describe block) already excludes
 these same two filenames when scanning _its own_ package directory, so P3's own test suite is
 green. Only the **root** script (or whoever wires it into CI for real, per D-011 / the Wave 3 P8

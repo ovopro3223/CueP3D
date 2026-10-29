@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 
 declare global {
   interface Window {
-    __understudyState?: string;
+    __cuep3dState?: string;
   }
 }
 
@@ -11,7 +11,7 @@ export async function waitForDebugState(
   expected: string,
   timeoutMs: number,
 ): Promise<void> {
-  await page.waitForFunction((state) => window.__understudyState === state, expected, {
+  await page.waitForFunction((state) => window.__cuep3dState === state, expected, {
     timeout: timeoutMs,
     polling: 100,
   });

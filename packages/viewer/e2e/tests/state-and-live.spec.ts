@@ -27,7 +27,7 @@ async function createViewerOnPage(
 ): Promise<number> {
   return page.evaluate(({ options }) => window.Harness.create(JSON.stringify(options)), {
     options: {
-      src: '/fixtures/out-cube/understudy.json',
+      src: '/fixtures/out-cube/cuep3d.json',
       policy: FORCE_HIGH_END_POLICY,
       ...overrides,
     },

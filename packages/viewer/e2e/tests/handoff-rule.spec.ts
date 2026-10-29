@@ -22,7 +22,7 @@ declare global {
 
 async function createViewerOnPage(page: Page): Promise<number> {
   return page.evaluate(({ options }) => window.Harness.create(JSON.stringify(options)), {
-    options: { src: '/fixtures/out-cube/understudy.json', policy: FORCE_HIGH_END_POLICY },
+    options: { src: '/fixtures/out-cube/cuep3d.json', policy: FORCE_HIGH_END_POLICY },
   });
 }
 

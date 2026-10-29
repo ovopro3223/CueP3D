@@ -5,7 +5,7 @@ import type { Manifest } from './index.js';
 function validFixture(): Manifest {
   return {
     version: 1,
-    generator: 'understudy-cli@0.1.0',
+    generator: 'cuep3d-cli@0.1.0',
     source: { name: 'Avocado', license: 'CC0-1.0' },
     bounds: { center: [0, 0, 0], radius: 1 },
     stage: {
@@ -69,7 +69,7 @@ describe('validateManifest', () => {
       expect(error).toBeInstanceOf(ManifestValidationError);
       const err = error as ManifestValidationError;
       expect(err.issues.length).toBeGreaterThan(0);
-      expect(err.message).toContain('Invalid understudy manifest');
+      expect(err.message).toContain('Invalid cuep3d manifest');
     }
   });
 
@@ -92,14 +92,14 @@ describe('validateManifest', () => {
 
 describe('resolveUrl', () => {
   it('resolves a relative tier url against the manifest url', () => {
-    expect(resolveUrl('https://example.com/models/foo/understudy.json', 'model.L0.glb')).toBe(
+    expect(resolveUrl('https://example.com/models/foo/cuep3d.json', 'model.L0.glb')).toBe(
       'https://example.com/models/foo/model.L0.glb',
     );
   });
 
   it('resolves a sequence pattern placeholder literally', () => {
-    expect(
-      resolveUrl('https://example.com/models/foo/understudy.json', 'frames-512/{i}.avif'),
-    ).toBe('https://example.com/models/foo/frames-512/%7Bi%7D.avif');
+    expect(resolveUrl('https://example.com/models/foo/cuep3d.json', 'frames-512/{i}.avif')).toBe(
+      'https://example.com/models/foo/frames-512/%7Bi%7D.avif',
+    );
   });
 });

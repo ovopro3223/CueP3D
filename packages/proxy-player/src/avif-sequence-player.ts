@@ -1,4 +1,4 @@
-import { resolveUrl, type ProxyVariant } from '@understudy3d/manifest';
+import { resolveUrl, type ProxyVariant } from '@cuep3d/manifest';
 import type { FrameImage, ProxyPlayer } from './types.js';
 import { createLruCache, type LruCache } from './lru-cache.js';
 import { ringWindow } from './gop.js';

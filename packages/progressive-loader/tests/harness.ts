@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { createStage } from '@understudy3d/stage';
-import type { StageParams } from '@understudy3d/manifest';
-import type { Tier } from '@understudy3d/manifest';
+import { createStage } from '@cuep3d/stage';
+import type { StageParams } from '@cuep3d/manifest';
+import type { Tier } from '@cuep3d/manifest';
 import { createProgressiveLoader, disposeObject } from '../src/index.js';
 
 const KTX2_TRANSCODER_PATH = '/basis/';

@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Understudy — Plain vs Understudy demo</title>
+    <title>CueP3D — Plain vs CueP3D demo</title>
     <meta
       name="description"
-      content="Side-by-side comparison of a naive three.js glTF load against Understudy's instant AV1 orbit-video stand-in with seamless handoff."
+      content="Side-by-side comparison of a naive three.js glTF load against CueP3D's instant AV1 orbit-video stand-in with seamless handoff."
     />
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
     <header class="page-header">
-      <h1>Understudy demo</h1>
+      <h1>CueP3D demo</h1>
       <p class="page-subtitle">
-        Plain three.js loading vs Understudy's instant proxy + progressive handoff, side by side.
+        Plain three.js loading vs CueP3D's instant proxy + progressive handoff, side by side.
       </p>
     </header>
 
@@ -52,7 +52,7 @@
       <details class="throttle-hint">
         <summary>How to actually throttle the network</summary>
         <p id="low-end-help">
-          A page cannot slow down its own network requests. To see Understudy's advantage on a slow
+          A page cannot slow down its own network requests. To see CueP3D's advantage on a slow
           connection, open DevTools → Network panel → set throttling to
           <strong>“Slow 3G”</strong> or <strong>“Fast 3G”</strong> before reloading. The “Simulate
           low-end device” toggle above instead overrides the viewer's own device-tier policy
@@ -70,17 +70,13 @@
           <dl id="plain-metrics" class="metrics-strip" aria-label="Plain pane metrics"></dl>
         </section>
 
-        <section class="pane" aria-label="Understudy loading">
-          <h2>Understudy</h2>
+        <section class="pane" aria-label="CueP3D loading">
+          <h2>CueP3D</h2>
           <p class="pane-caption">
-            <code>&lt;understudy-viewer&gt;</code> — instant AV1 proxy, progressive glTF handoff.
+            <code>&lt;cuep3d-viewer&gt;</code> — instant AV1 proxy, progressive glTF handoff.
           </p>
-          <div id="understudy-viewport" class="viewport" aria-label="Understudy pane 3D view"></div>
-          <dl
-            id="understudy-metrics"
-            class="metrics-strip"
-            aria-label="Understudy pane metrics"
-          ></dl>
+          <div id="cuep3d-viewport" class="viewport" aria-label="CueP3D pane 3D view"></div>
+          <dl id="cuep3d-metrics" class="metrics-strip" aria-label="CueP3D pane metrics"></dl>
         </section>
       </div>
 

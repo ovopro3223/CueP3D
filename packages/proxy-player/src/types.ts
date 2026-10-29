@@ -1,5 +1,5 @@
 /**
- * @understudy3d/proxy-player public API. Frozen per docs/01-design.md §5.4 —
+ * @cuep3d/proxy-player public API. Frozen per docs/01-design.md §5.4 —
  * a sibling package (viewer, P6) is written against these signatures without
  * reading this package's internals, so nothing here may change shape.
  */

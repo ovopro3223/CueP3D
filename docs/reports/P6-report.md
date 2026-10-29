@@ -6,7 +6,7 @@ Status: done. 2026-10-29.
 
 `packages/viewer`, implementing the frozen §5.6 API: `createViewer(container, options)` → a
 `Viewer` (`EventTarget`) with `state`, `degraded`, `metrics`, `dispose()`, and `statechange`/
-`metrics`/`error` events; `<understudy-viewer src background>` wraps it.
+`metrics`/`error` events; `<cuep3d-viewer src background>` wraps it.
 
 - **`state-machine.ts`** — a pure reducer (`transition(state, event)`), the only place any
   `Viewer.state` value is ever assigned. Implements §6's graph exactly, including `warming` and
@@ -34,7 +34,7 @@ Status: done. 2026-10-29.
   retry-once per tier, upgrade loop), the handoff itself (fast-drag wait → `stage.setView` →
   `stage.setModel` → 150ms `requestAnimationFrame` cross-fade → `OrbitControls` init → proxy
   dispose), and `dispose()`.
-- **`custom-element.ts`** — `<understudy-viewer>`, a thin wrapper (`src`/`background` attributes
+- **`custom-element.ts`** — `<cuep3d-viewer>`, a thin wrapper (`src`/`background` attributes
   only; policy overrides and `debug` stay JS-API-only).
 
 ## Test results
@@ -52,7 +52,7 @@ spec.ts` (2: `renderer.info.memory` and outstanding `requestAnimationFrame` coun
   baseline; mid-flight dispose doesn't throw), `fallback-chain.spec.ts` (2: `VideoDecoder` removed
   → `<video>` fallback, not degraded; every proxy route blocked → `degraded === true`, still
   reaches `live`/`settled`).
-- `pnpm -F @understudy3d/viewer run typecheck` and `pnpm -F @understudy3d/viewer run lint`
+- `pnpm -F @cuep3d/viewer run typecheck` and `pnpm -F @cuep3d/viewer run lint`
   (via the root `eslint .`): clean. `node scripts/assert-free-codecs.mjs fixtures packages/viewer`:
   clean.
 
@@ -93,8 +93,8 @@ proxy-to-live swap the visitor actually watches even starts. See
 
 ## Fixture: `fixtures/out-cube/`
 
-`packages/cli`'s `understudy build` isn't wired yet (Wave 2), so `packages/viewer/scripts/
-make-fixture.mjs` calls `@understudy3d/build-proxy` and `@understudy3d/build-encode` directly —
+`packages/cli`'s `cuep3d build` isn't wired yet (Wave 2), so `packages/viewer/scripts/
+make-fixture.mjs` calls `@cuep3d/build-proxy` and `@cuep3d/build-encode` directly —
 both added as devDependencies for exactly this script, not shipped. The model is a plain,
 untextured sphere built in the script itself (three.js `SphereGeometry` + gltf-transform +
 meshoptimizer), not a reuse of `fixtures/progressive-loader-cube.glb` — a textured cube was tried
@@ -177,7 +177,7 @@ Real deviations, all flagged above and in their own change-request files:
 - **Dev, for the e2e harness** (mirrors `progressive-loader`'s own precedent exactly):
   `@playwright/test`, `playwright`, `esbuild` (bundles `e2e/harness/harness.ts`).
 - **Dev, for `scripts/make-fixture.mjs` only** (mirrors `progressive-loader`'s own precedent):
-  `@understudy3d/build-proxy`, `@understudy3d/build-encode` (workspace), `@gltf-transform/core`,
+  `@cuep3d/build-proxy`, `@cuep3d/build-encode` (workspace), `@gltf-transform/core`,
   `@gltf-transform/extensions`, `@gltf-transform/functions`, `meshoptimizer`.
 
 ## Open questions
@@ -200,9 +200,9 @@ Real deviations, all flagged above and in their own change-request files:
 ```bash
 pnpm install
 pnpm run build                                            # whole repo, dist/ for every workspace dep
-pnpm -F @understudy3d/viewer run make-fixture              # regenerates fixtures/out-cube/
-pnpm -F @understudy3d/viewer run typecheck                 # clean
-pnpm -F @understudy3d/viewer run test:unit                 # vitest, 137/137
-pnpm -F @understudy3d/viewer run test:e2e                  # playwright, 11/11 (installs chromium once: npx playwright install chromium)
+pnpm -F @cuep3d/viewer run make-fixture              # regenerates fixtures/out-cube/
+pnpm -F @cuep3d/viewer run typecheck                 # clean
+pnpm -F @cuep3d/viewer run test:unit                 # vitest, 137/137
+pnpm -F @cuep3d/viewer run test:e2e                  # playwright, 11/11 (installs chromium once: npx playwright install chromium)
 node scripts/assert-free-codecs.mjs fixtures packages/viewer   # clean
 ```

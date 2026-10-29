@@ -1,5 +1,5 @@
 {
-  "name": "understudy",
+  "name": "cuep3d",
   "private": true,
   "version": "0.1.0",
   "description": "Instant AV1 orbit-video stand-in with seamless handoff to progressive glTF.",
@@ -15,14 +15,14 @@
     "build": "pnpm -r --if-present run build",
     "typecheck": "pnpm run build && pnpm -r --if-present run typecheck",
     "test": "pnpm run build && pnpm -r --if-present run test",
-    "understudy": "node packages/cli/dist/bin.js",
+    "cuep3d": "node packages/cli/dist/bin.js",
     "fetch-samples": "node scripts/fetch-samples.mjs",
-    "demo:assets": "pnpm --filter @understudy3d/demo run build:assets",
+    "demo:assets": "pnpm --filter @cuep3d/demo run build:assets",
     "make-fixtures": "node scripts/make-fixtures.mjs",
     "assert-free-codecs": "node scripts/assert-free-codecs.mjs",
     "check-licenses": "node scripts/check-licenses.mjs",
-    "bench": "pnpm --filter @understudy3d/bench run bench",
-    "bench:gif": "pnpm --filter @understudy3d/bench run gif"
+    "bench": "pnpm --filter @cuep3d/bench run bench",
+    "bench:gif": "pnpm --filter @cuep3d/bench run gif"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

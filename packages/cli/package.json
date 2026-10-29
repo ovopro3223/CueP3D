@@ -1,11 +1,11 @@
 {
-  "name": "@understudy3d/cli",
+  "name": "@cuep3d/cli",
   "version": "0.1.0",
-  "description": "understudy build — turns a .glb/.gltf into an AV1-proxy + progressive-glTF bundle.",
+  "description": "cuep3d build — turns a .glb/.gltf into an AV1-proxy + progressive-glTF bundle.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "understudy": "./dist/bin.js"
+    "cuep3d": "./dist/bin.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,10 +18,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@understudy3d/build-encode": "workspace:*",
-    "@understudy3d/build-geometry": "workspace:*",
-    "@understudy3d/build-proxy": "workspace:*",
-    "@understudy3d/manifest": "workspace:*"
+    "@cuep3d/build-encode": "workspace:*",
+    "@cuep3d/build-geometry": "workspace:*",
+    "@cuep3d/build-proxy": "workspace:*",
+    "@cuep3d/manifest": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

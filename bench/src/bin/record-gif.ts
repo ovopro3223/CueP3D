@@ -8,7 +8,7 @@ import { startDemoServer, REPO_ROOT } from '../server.js';
 
 declare global {
   interface Window {
-    __understudyState?: string;
+    __cuep3dState?: string;
   }
 }
 
@@ -37,7 +37,7 @@ function resolveFfmpegPath(): string {
 async function waitForVisible(page: Page, timeoutMs: number): Promise<void> {
   await page.waitForFunction(
     (loadingStates) => {
-      const state = window.__understudyState;
+      const state = window.__cuep3dState;
       return state !== undefined && !loadingStates.includes(state);
     },
     [...LOADING_STATES],
@@ -46,7 +46,7 @@ async function waitForVisible(page: Page, timeoutMs: number): Promise<void> {
 }
 
 async function waitForSettled(page: Page, timeoutMs: number): Promise<void> {
-  await page.waitForFunction(() => window.__understudyState === 'settled', undefined, {
+  await page.waitForFunction(() => window.__cuep3dState === 'settled', undefined, {
     timeout: timeoutMs,
     polling: 100,
   });
@@ -56,7 +56,7 @@ async function main(): Promise<void> {
   if (!GIF_PRESET) throw new Error('bench: 4g preset not found');
 
   const server = await startDemoServer(PORT);
-  const videoDir = mkdtempSync(path.join(tmpdir(), 'understudy-gif-'));
+  const videoDir = mkdtempSync(path.join(tmpdir(), 'cuep3d-gif-'));
   const browser = await chromium.launch({
     args: ['--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'],
   });
@@ -77,15 +77,15 @@ async function main(): Promise<void> {
 
     const url = new URL(server.baseUrl);
     url.searchParams.set('model', MODEL_SLUG);
-    url.searchParams.set('mode', 'understudy');
+    url.searchParams.set('mode', 'cuep3d');
     url.searchParams.set('debug', '1');
     console.log(`[gif] loading ${url.toString()} at ${GIF_PRESET.label}...`);
     await page.goto(url.toString(), { waitUntil: 'domcontentloaded' });
 
-    const pane = page.locator('#understudy-viewport');
+    const pane = page.locator('#cuep3d-viewport');
     await pane.scrollIntoViewIfNeeded();
     const box = await pane.boundingBox();
-    if (!box) throw new Error('bench: could not measure #understudy-viewport bounding box');
+    if (!box) throw new Error('bench: could not measure #cuep3d-viewport bounding box');
     crop = {
       x: Math.round(box.x),
       y: Math.round(box.y),

@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer, { type Browser } from 'puppeteer';
-import { azimuthForFrameIndex, degToRad } from '@understudy3d/stage';
-import type { StageParams } from '@understudy3d/manifest';
+import { azimuthForFrameIndex, degToRad } from '@cuep3d/stage';
+import type { StageParams } from '@cuep3d/manifest';
 import { renderProxyFrames, type RenderProxyFramesOptions } from './render-proxy.js';
 import { decodePngStats } from './test-support/decode-png.js';
 
@@ -49,7 +49,7 @@ function baseOptions(
 }
 
 async function makeTmpDir(): Promise<string> {
-  return mkdtemp(path.join(tmpdir(), 'understudy-build-proxy-'));
+  return mkdtemp(path.join(tmpdir(), 'cuep3d-build-proxy-'));
 }
 
 describe('renderProxyFrames', () => {

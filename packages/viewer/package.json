@@ -1,5 +1,5 @@
 {
-  "name": "@understudy3d/viewer",
+  "name": "@cuep3d/viewer",
   "version": "0.1.0",
   "description": "The orchestrator: state machine, QualityPolicy, pointer-driven scrub, and the camera-synchronized cross-fade handoff from the proxy player to the progressively-streamed glTF.",
   "license": "MIT",
@@ -25,10 +25,10 @@
     "make-fixture": "node scripts/make-fixture.mjs"
   },
   "dependencies": {
-    "@understudy3d/manifest": "workspace:*",
-    "@understudy3d/progressive-loader": "workspace:*",
-    "@understudy3d/proxy-player": "workspace:*",
-    "@understudy3d/stage": "workspace:*",
+    "@cuep3d/manifest": "workspace:*",
+    "@cuep3d/progressive-loader": "workspace:*",
+    "@cuep3d/proxy-player": "workspace:*",
+    "@cuep3d/stage": "workspace:*",
     "three": "^0.171.0"
   },
   "devDependencies": {
@@ -38,8 +38,8 @@
     "@playwright/test": "^1.49.1",
     "@types/node": "^22.10.2",
     "@types/three": "^0.186.0",
-    "@understudy3d/build-encode": "workspace:*",
-    "@understudy3d/build-proxy": "workspace:*",
+    "@cuep3d/build-encode": "workspace:*",
+    "@cuep3d/build-proxy": "workspace:*",
     "esbuild": "^0.24.0",
     "meshoptimizer": "^1.3.0",
     "playwright": "^1.49.1",

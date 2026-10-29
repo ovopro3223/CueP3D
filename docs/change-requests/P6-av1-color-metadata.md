@@ -19,7 +19,7 @@ the exact ground-truth frame..." — compares the live render directly against `
 ground-truth PNG for the same frame index, with **no video codec involved at all**, and reads
 **0.000%**. The camera sync, state machine, `OrbitControls` handoff and cross-fade this package
 owns are exactly correct. The entire 5.2% sits in the gap between that ground-truth PNG and what
-`@understudy3d/proxy-player` hands back after decoding the AV1 video `build-encode` made from it.
+`@cuep3d/proxy-player` hands back after decoding the AV1 video `build-encode` made from it.
 
 ## What was ruled out (each verified directly on this fixture, not assumed)
 

@@ -1,8 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import puppeteer, { type Browser, type Page } from 'puppeteer';
-import type { StageParams } from '@understudy3d/manifest';
-import { azimuthForFrameIndex, degToRad, fitDistance, radToDeg } from '@understudy3d/stage';
+import type { StageParams } from '@cuep3d/manifest';
+import { azimuthForFrameIndex, degToRad, fitDistance, radToDeg } from '@cuep3d/stage';
 import { startStaticServer } from './static-server.js';
 
 export interface RenderProxyFramesOptions {
@@ -70,16 +70,16 @@ async function loadModelBytes(modelUrlOrPath: string): Promise<Uint8Array> {
 
 async function waitForPageReady(page: Page): Promise<void> {
   await page.waitForFunction(
-    () => window.__understudyPageReady === true || typeof window.__understudyPageError === 'string',
+    () => window.__cuep3dPageReady === true || typeof window.__cuep3dPageError === 'string',
     { timeout: PAGE_READY_TIMEOUT_MS },
   );
-  const pageError = await page.evaluate(() => window.__understudyPageError);
+  const pageError = await page.evaluate(() => window.__cuep3dPageError);
   if (pageError) throw new Error(`render page failed to initialize: ${pageError}`);
 }
 
 async function loadModel(page: Page, modelUrl: string): Promise<void> {
   await page.evaluate(async (url) => {
-    await window.__understudyRender?.load(url);
+    await window.__cuep3dRender?.load(url);
   }, modelUrl);
 }
 
@@ -88,22 +88,18 @@ async function snapshotFrame(
   azimuthRad: number,
   elevationRad: number,
 ): Promise<Buffer> {
-  await page.evaluate(
-    (az, el) => window.__understudyRender?.setView(az, el),
-    azimuthRad,
-    elevationRad,
-  );
+  await page.evaluate((az, el) => window.__cuep3dRender?.setView(az, el), azimuthRad, elevationRad);
   const base64Png = await page.evaluate(async () => {
-    const render = window.__understudyRender;
-    if (!render) throw new Error('window.__understudyRender missing');
+    const render = window.__cuep3dRender;
+    if (!render) throw new Error('window.__cuep3dRender missing');
     return render.snapshot();
   });
   return Buffer.from(base64Png, 'base64');
 }
 
 /**
- * Renders the understudy orbit-video source frames for `modelUrlOrPath` in
- * headless Chromium, using @understudy3d/stage so build-time frames and the
+ * Renders the proxy orbit-video source frames for `modelUrlOrPath` in
+ * headless Chromium, using @cuep3d/stage so build-time frames and the
  * live viewer agree pixel-for-pixel (D-007). See docs/briefs/P2-build-proxy.md.
  */
 export async function renderProxyFrames(

@@ -1,8 +1,8 @@
 /**
- * Deliberately standalone, not imported from @understudy3d/progressive-loader
+ * Deliberately standalone, not imported from @cuep3d/progressive-loader
  * (which has the same helper): the Plain pane is meant to be the naive,
  * independent baseline everyone actually ships today, not a consumer of
- * Understudy's own optimized loading code.
+ * CueP3D's own optimized loading code.
  */
 export async function fetchWithProgress(
   url: string,

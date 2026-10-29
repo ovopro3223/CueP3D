@@ -26,11 +26,11 @@ export function renderBenchmarksMarkdown(report: SweepReport): string {
   lines.push('');
   lines.push(
     '3 runs per cell, median reported (bench/src/median.ts). Goals (docs/01-design.md §3): ' +
-      'Understudy TTFV ≤ 500 ms and TTI ≤ 3000 ms on `3g-fast`, for every model.',
+      'CueP3D TTFV ≤ 500 ms and TTI ≤ 3000 ms on `3g-fast`, for every model.',
   );
   lines.push('');
   lines.push(
-    "`TTFV`/`TTI` are the viewer's own internal marks (`window.__understudyMetrics`), timed " +
+    "`TTFV`/`TTI` are the viewer's own internal marks (`window.__cuep3dMetrics`), timed " +
       "from `createViewer()`'s own construction — they exclude however long the page's JS " +
       'bundle itself took to fetch/parse/execute first. `Wall TTFV`/`Wall TTI` are the same two ' +
       "marks timed from navigation start instead (what a real visitor's clock would show); see " +

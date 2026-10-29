@@ -21,7 +21,7 @@ const samplesDir = path.join(repoRoot, 'samples');
 const outDir = path.join(demoDir, 'public', 'models');
 
 // progressive-loader's KTX2 transcoder path is resolved per-manifest, relative
-// to that model's own understudy.json (DEFAULT_KTX2_TRANSCODER_PATH = './basis/'
+// to that model's own cuep3d.json (DEFAULT_KTX2_TRANSCODER_PATH = './basis/'
 // in packages/progressive-loader/src/loader.ts) — each model needs its own copy.
 // Without this, those requests 404 and Vite's dev-server SPA fallback serves
 // index.html for them with a 200 status, which hangs KTX2 transcoding forever

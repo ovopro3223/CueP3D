@@ -1,7 +1,7 @@
 {
-  "name": "@understudy3d/manifest",
+  "name": "@cuep3d/manifest",
   "version": "0.1.0",
-  "description": "Schema, types and validator for understudy.json manifests.",
+  "description": "Schema, types and validator for cuep3d.json manifests.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
